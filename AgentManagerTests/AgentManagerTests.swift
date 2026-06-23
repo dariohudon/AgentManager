@@ -1,9 +1,31 @@
+import AppKit
 import XCTest
 @testable import AgentManager
 
 final class AgentManagerTests: XCTestCase {
     func testProjectBootstraps() {
         XCTAssertTrue(true)
+    }
+
+    func testCopyTextIsExactlyThePrompt() {
+        // The copied text must be the prompt verbatim — no title, name,
+        // description, or metadata concatenated in.
+        for agent in SeedAgents.all {
+            XCTAssertEqual(PromptPasteboard.copyText(for: agent), agent.prompt)
+        }
+    }
+
+    func testCopyWritesOnlyPromptToPasteboard() {
+        // Use a uniquely named pasteboard so the user's real clipboard is untouched.
+        let pasteboard = NSPasteboard(name: .init("AgentManagerTests.copy"))
+        pasteboard.clearContents()
+
+        let agent = SeedAgents.architect
+        PromptPasteboard.copy(agent, to: pasteboard)
+
+        XCTAssertEqual(pasteboard.string(forType: .string), agent.prompt)
+
+        pasteboard.releaseGlobally()
     }
 
     func testSeedAgentsIncludeArchitectImplementerReviewer() {
