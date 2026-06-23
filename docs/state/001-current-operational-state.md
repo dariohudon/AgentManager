@@ -2,75 +2,99 @@
 
 ## Status
 
-M01 implementation is complete and in final lock repair / review.
+M02 implementation is complete and ready for final Codex lock review (M02-S05).
 
 ## Current Milestone
 
-M01 - Menu Bar Agent Vault (final: capability-first Agent Library)
+M02 - Agent Library Polish + Metadata
 
 ## Current Branch
 
-m01-s10-final-docs-lock-fix
+m02-s05-codex-review-m02-lock
 
 ## Local Path
 
 /Users/dario/AgentManager
 
-## Shipped in M01
+## Shipped
 
-`main` contains M01-S01 through M01-S09:
+`main` contains M01 (S01–S09) plus M02-S01 through M02-S04:
 
-- S01 Product Scope Lock
-- S02 Menu Bar App Shell
-- S03 Agent Data Model and Seed Data
-- S04 Agent List and Detail UI
-- S05 Copy Prompt Action
-- S06 Local JSON Persistence
-- S07 Add / Edit / Delete Agents
-- S08 Categorized Agent Library
-- S09 Global Keyboard Shortcut
+- M01 — Menu Bar Agent Vault (locked): menu bar app, Agent model + seed data,
+  categorized list/detail, Copy Prompt, local JSON persistence, add/edit/delete,
+  global shortcut + standalone hotkey window.
+- M02-S01 — Category UX Polish: category headers larger/bold; collapsed by default;
+  expand/collapse via `DisclosureGroup`; no hidden auto-selected agent on open.
+- M02-S02 — Preferred AI Field and Managed Dropdowns: `Agent.preferredAI`; category and
+  Preferred AI dropdowns; user-addable options; new `options.json`.
+- M02-S03 — Settings Gear: inline Settings mode (not sheet/popover) behind a cog;
+  app-level options + storage/shortcut info; no per-agent content.
+- M02-S04 — Duplicate Agent: duplicate selected agent (new id, fresh timestamps,
+  ` Copy` name, preserved fields), expands the copy's category and selects it.
 
-## Stable Systems
+## App Model
 
-- Native macOS menu bar app (`MenuBarExtra`)
-- `Agent` model with `category` (plus id, name, title, description, prompt, createdAt,
-  updatedAt)
-- Seed agents (Architect → Strategy, Implementer → Operations, Reviewer → Quality
-  Assurance)
-- Categorized list/detail UI (sidebar grouped by category)
-- Add / edit / delete agents via an inline editor (delete with confirmation)
-- Local JSON persistence (`AgentStore`)
-- Copy Prompt copies only the prompt text
-- Global shortcut Control + Option + Space (Carbon `RegisterEventHotKey`)
-- Standalone hotkey-opened Agent Manager window sharing the same store
-- Architecture docs (`docs/architecture/m01-menu-bar-agent-vault.md`)
+Agent Library → Category → Agent → Instructions (capability-first, not prompt-first).
+
+## Agent Fields
+
+`id`, `category`, `preferredAI`, `name`, `title`, `description`, `prompt`, `createdAt`,
+`updatedAt`. Older JSON missing `category`/`preferredAI` loads with defaults
+("General" / "ChatGPT").
+
+## Storage
+
+- Agents: `~/Library/Application Support/AgentManager/agents.json` (plain `[Agent]` array)
+- Options: `~/Library/Application Support/AgentManager/options.json` (`LibraryOptions`)
+
+## Options
+
+- Categories are managed app-level options (derived from agents ∪ custom additions).
+- Preferred AI options are managed app-level options.
+- Default Preferred AI options: ChatGPT, Claude, Perplexity, Zapier, Descript.
+- Options are added from either the agent editor or Settings (same persistence).
+
+## Settings
+
+- Inline mode (not a sheet/popover), reached via an unobtrusive cog.
+- App-level reusable options only (categories, Preferred AI) plus storage/shortcut info.
+- No per-agent content in Settings.
+
+## Duplicate
+
+- New `id` and fresh `createdAt`/`updatedAt`.
+- Preserves category, Preferred AI, title, description, prompt.
+- Marks the name with ` Copy`.
 
 ## Stable Decisions
 
-- Native macOS menu bar app, Swift + SwiftUI
-- Capability-first Agent Library: Agent Library → Category → Agent → Instructions
-- Local-first JSON storage only
-- Copy Prompt is the primary action and copies only the prompt
-- BATON-managed workflow
-- No Chrome extension, backend, cloud sync, browser injection, PM2/server deployment, or
-  in-app BATON integration in M01
+- Native macOS menu bar app, Swift + SwiftUI; capability-first Agent Library.
+- `AgentBrowserView` is reusable by both the `MenuBarExtra` surface and the standalone
+  hotkey `NSWindow`.
+- Preferred AI is user-facing wording for a preferred tool/engine field.
+- Local-first JSON storage only; BATON-managed workflow.
+- No Chrome extension, backend, cloud sync, browser injection, server deployment, in-app
+  BATON integration, workflows/handoffs/review packets, or capability engines.
 
 ## Known Limitations
 
-- Control + Option + Space may conflict with the macOS input-source switching shortcut
-  when multiple input sources are enabled; if the combination is already claimed,
-  registration fails (logged) and the app runs without the shortcut.
-- No Accessibility (or other) permission is required for the shortcut (app-scoped Carbon
-  hot key, not a global event tap).
-- Local JSON persistence only — no cloud sync or multi-device support.
-- Advanced capability tabs/engines (inputs, examples, validation, versions, usage,
-  Claude Skills / Custom GPTs / MCP tools, automations, templates, checklists) are
-  deferred to M02+.
+- No live GUI automation in reviews — interactive flows are spot-checked by a human;
+  data/persistence paths are covered by unit tests.
+- Managed options are add-only (no delete/rename yet) to avoid data-integrity issues
+  with categories already assigned to agents.
+- Duplicating a duplicate yields names like `Name Copy Copy` (no uniqueness logic).
+- Local JSON only — no cloud sync or multi-device support.
+- Control + Option + Space may conflict with the macOS input-source switching shortcut;
+  if already claimed, registration fails (logged) and the app runs without it.
+- The shortcut opens a real `NSWindow` because `MenuBarExtra` cannot be opened
+  programmatically.
 
-## Storage Path
+## M03 Direction (not implemented)
 
-`~/Library/Application Support/AgentManager/agents.json`
+- Native macOS Redesign: move from a CRUD-over-JSON feel to a native capability library.
+- Separate Browse → Inspect → Edit.
+- Eventual Run / agent-execution direction (not in M02).
 
 ## Immediate Next Step
 
-Final Codex review and M01 lock (M01-S10).
+Final Codex review and M02 lock (M02-S05).
