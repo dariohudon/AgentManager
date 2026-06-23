@@ -3,11 +3,18 @@ import SwiftUI
 /// The Agent Library surface: a native `NavigationSplitView` with a sidebar
 /// navigator on the left and an agent inspection/detail region on the right.
 ///
-/// The split view is the persistent foundation — the sidebar stays visible
-/// while the detail column swaps between inspecting the selected agent, the
-/// inline editor, an inline delete confirmation, and inline Settings. These
-/// flows stay inline (no `.sheet`/`.popover`/`.confirmationDialog`), which is
-/// stable inside the `MenuBarExtra` popover and the hotkey window. This same
+/// Interaction architecture is **Browse → Inspect → Edit**:
+/// - **Browse**: the sidebar (categories + agents). Selecting an agent always
+///   returns the detail column to read-only inspect — navigating never drops
+///   you into a form.
+/// - **Inspect**: the default detail state (`.inspect`) — a read-focused view
+///   of the selected agent. This is the resting experience.
+/// - **Edit**: an intentional state (`.editor`) entered only via the Edit or
+///   New Agent actions, never automatically.
+///
+/// Delete confirmation and app-level Settings are also detail-column states.
+/// All flows stay inline (no `.sheet`/`.popover`/`.confirmationDialog`), which
+/// is stable inside the `MenuBarExtra` popover and the hotkey window. This same
 /// view backs both surfaces via `ContentView`; there is no menu-bar-only or
 /// hotkey-only UI path.
 struct AgentBrowserView: View {
@@ -20,7 +27,8 @@ struct AgentBrowserView: View {
     /// starts collapsed each time the library opens. Not persisted across launches.
     @State private var expandedCategories: Set<String> = []
 
-    /// What the detail (right) column is currently showing.
+    /// What the detail (right) column is currently showing. `.inspect` is the
+    /// default/read state; `.editor` is the intentional edit state.
     private enum DetailMode {
         case inspect
         case editor(AgentEditorMode)
@@ -33,6 +41,11 @@ struct AgentBrowserView: View {
             sidebar
         } detail: {
             detailColumn
+        }
+        .onChange(of: selectedAgentID) {
+            // Browsing to an agent always inspects it; editing is re-entered
+            // deliberately via the Edit action.
+            detail = .inspect
         }
     }
 
@@ -88,11 +101,19 @@ struct AgentBrowserView: View {
 
             Divider()
 
-            HStack {
-                Button("New Agent", systemImage: "plus") {
+            // Compact, quiet toolbar so creating/configuring never dominates
+            // the browsing experience.
+            HStack(spacing: 12) {
+                Button {
                     detail = .editor(.add)
+                } label: {
+                    Image(systemName: "plus")
                 }
+                .buttonStyle(.borderless)
+                .help("New Agent")
+
                 Spacer()
+
                 Button {
                     detail = .settings
                 } label: {
