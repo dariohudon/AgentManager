@@ -2,15 +2,16 @@
 
 ## Status
 
-M02 implementation is complete and ready for final Codex lock review (M02-S05).
+M01 and M02 are locked. M03 (Native macOS Redesign) has begun with its direction lock
+(M03-S01) — docs only; no product UI redesigned yet.
 
 ## Current Milestone
 
-M02 - Agent Library Polish + Metadata
+M03 - Native macOS Redesign (direction-locking)
 
 ## Current Branch
 
-m02-s05-codex-review-m02-lock
+m03-s01-redesign-direction-lock
 
 ## Local Path
 
@@ -89,12 +90,21 @@ Agent Library → Category → Agent → Instructions (capability-first, not pro
 - The shortcut opens a real `NSWindow` because `MenuBarExtra` cannot be opened
   programmatically.
 
-## M03 Direction (not implemented)
+## M03 Direction (direction-locked, not yet implemented)
 
 - Native macOS Redesign: move from a CRUD-over-JSON feel to a native capability library.
-- Separate Browse → Inspect → Edit.
-- Eventual Run / agent-execution direction (not in M02).
+- Separate Browse → Inspect → Edit; inspect/read is default, edit is intentional.
+- Primary action becomes Run-oriented (still copy-backed) and prepares for Open-in-AI.
+- Destructive actions de-emphasized; Settings stays app-level only; the shared Agent
+  Library surface stays reusable across the menu bar and hotkey window.
+- Full direction + diagnosis + layout + sprint plan:
+  `docs/architecture/m03-native-macos-redesign.md`.
+- Planned sprints: S01 Direction Lock (this), S02 NavigationSplitView Foundation,
+  S03 Native Materials and Visual Hierarchy, S04 Browse/Inspect/Edit Architecture,
+  S05 Agent Detail Redesign, S06 Primary Run Action Direction, S07 Codex Review and M03
+  Lock.
 
 ## Immediate Next Step
 
-Final Codex review and M02 lock (M02-S05).
+Codex review of the M03 direction lock (M03-S01), then M03-S02 (NavigationSplitView
+Foundation).
