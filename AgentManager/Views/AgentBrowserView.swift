@@ -1,86 +1,73 @@
 import SwiftUI
 
-/// List/detail browser for the agent library, sized for the menu bar window.
+/// The Agent Library surface: a native `NavigationSplitView` with a sidebar
+/// navigator on the left and an agent inspection/detail region on the right.
 ///
-/// Add/edit and delete-confirmation are shown as **inline modes** that replace
-/// the browsing surface, rather than `.sheet`/`.confirmationDialog` modals.
-/// Modals attached to a `MenuBarExtra` popover get dismissed when focus moves
-/// or the popover resigns key, which made the editor vanish mid-edit; inline
-/// modes are stable from both the menu bar panel and the hotkey-opened window.
+/// The split view is the persistent foundation — the sidebar stays visible
+/// while the detail column swaps between inspecting the selected agent, the
+/// inline editor, an inline delete confirmation, and inline Settings. These
+/// flows stay inline (no `.sheet`/`.popover`/`.confirmationDialog`), which is
+/// stable inside the `MenuBarExtra` popover and the hotkey window. This same
+/// view backs both surfaces via `ContentView`; there is no menu-bar-only or
+/// hotkey-only UI path.
 struct AgentBrowserView: View {
     @Bindable var vault: AgentVault
 
     @State private var selectedAgentID: Agent.ID?
-    @State private var mode: Mode = .browse
+    @State private var detail: DetailMode = .inspect
 
     /// Categories whose section is expanded. Empty by default, so every category
     /// starts collapsed each time the library opens. Not persisted across launches.
     @State private var expandedCategories: Set<String> = []
 
-    /// What the surface is currently showing.
-    private enum Mode {
-        case browse
+    /// What the detail (right) column is currently showing.
+    private enum DetailMode {
+        case inspect
         case editor(AgentEditorMode)
         case confirmDelete(Agent)
         case settings
     }
 
     var body: some View {
-        switch mode {
-        case .browse:
-            browse
+        NavigationSplitView {
+            sidebar
+        } detail: {
+            detailColumn
+        }
+    }
+
+    // MARK: - Detail column
+
+    @ViewBuilder
+    private var detailColumn: some View {
+        switch detail {
+        case .inspect:
+            if let agent = selectedAgent {
+                AgentDetailView(
+                    agent: agent,
+                    onEdit: { detail = .editor(.edit(agent)) },
+                    onDuplicate: { duplicate(agent) },
+                    onDelete: { detail = .confirmDelete(agent) }
+                )
+            } else if vault.agents.isEmpty {
+                emptyState
+            } else {
+                selectPrompt
+            }
         case .editor(let editorMode):
             AgentEditorView(mode: editorMode, vault: vault) {
-                mode = .browse
+                detail = .inspect
             }
         case .confirmDelete(let agent):
             deleteConfirmation(agent)
         case .settings:
             SettingsView(vault: vault) {
-                mode = .browse
+                detail = .inspect
             }
         }
     }
 
-    // MARK: - Browse
-
-    private var browse: some View {
-        Group {
-            if vault.agents.isEmpty {
-                emptyState
-            } else {
-                NavigationSplitView {
-                    sidebar
-                } detail: {
-                    if let agent = selectedAgent {
-                        AgentDetailView(
-                            agent: agent,
-                            onEdit: { mode = .editor(.edit(agent)) },
-                            onDuplicate: { duplicate(agent) },
-                            onDelete: { mode = .confirmDelete(agent) }
-                        )
-                    } else {
-                        selectPrompt
-                    }
-                }
-            }
-        }
-    }
-
-    /// Two-way binding for a category's expanded state, backed by
-    /// `expandedCategories`. Categories are collapsed unless present in the set.
-    private func expansionBinding(for category: String) -> Binding<Bool> {
-        Binding(
-            get: { expandedCategories.contains(category) },
-            set: { isExpanded in
-                if isExpanded {
-                    expandedCategories.insert(category)
-                } else {
-                    expandedCategories.remove(category)
-                }
-            }
-        )
-    }
+    // MARK: - Sidebar / navigator
 
     private var sidebar: some View {
         VStack(spacing: 0) {
@@ -103,11 +90,11 @@ struct AgentBrowserView: View {
 
             HStack {
                 Button("New Agent", systemImage: "plus") {
-                    mode = .editor(.add)
+                    detail = .editor(.add)
                 }
                 Spacer()
                 Button {
-                    mode = .settings
+                    detail = .settings
                 } label: {
                     Image(systemName: "gearshape")
                 }
@@ -118,6 +105,21 @@ struct AgentBrowserView: View {
             .padding(.vertical, 6)
         }
         .frame(minWidth: 200)
+    }
+
+    /// Two-way binding for a category's expanded state, backed by
+    /// `expandedCategories`. Categories are collapsed unless present in the set.
+    private func expansionBinding(for category: String) -> Binding<Bool> {
+        Binding(
+            get: { expandedCategories.contains(category) },
+            set: { isExpanded in
+                if isExpanded {
+                    expandedCategories.insert(category)
+                } else {
+                    expandedCategories.remove(category)
+                }
+            }
+        )
     }
 
     // MARK: - Delete confirmation (inline)
@@ -137,7 +139,7 @@ struct AgentBrowserView: View {
                 .multilineTextAlignment(.center)
 
             HStack {
-                Button("Cancel", role: .cancel) { mode = .browse }
+                Button("Cancel", role: .cancel) { detail = .inspect }
                 Button("Delete", role: .destructive) { confirmDelete(agent) }
             }
         }
@@ -162,17 +164,18 @@ struct AgentBrowserView: View {
     private func confirmDelete(_ agent: Agent) {
         vault.delete(id: agent.id)
         if selectedAgentID == agent.id {
-            selectedAgentID = vault.agents.first?.id
+            selectedAgentID = nil
         }
-        mode = .browse
+        detail = .inspect
     }
 
-    /// Duplicates the agent, expands the copy's category so it's visible, and
-    /// selects it.
+    /// Duplicates the agent, expands the copy's category so it's visible,
+    /// selects it, and returns to inspect mode.
     private func duplicate(_ agent: Agent) {
         guard let copy = vault.duplicate(id: agent.id) else { return }
         expandedCategories.insert(copy.category)
         selectedAgentID = copy.id
+        detail = .inspect
     }
 
     private var emptyState: some View {
@@ -189,15 +192,9 @@ struct AgentBrowserView: View {
                 .foregroundStyle(.secondary)
 
             Button("New Agent", systemImage: "plus") {
-                mode = .editor(.add)
+                detail = .editor(.add)
             }
             .padding(.top, 4)
-
-            Button("Settings", systemImage: "gearshape") {
-                mode = .settings
-            }
-            .buttonStyle(.borderless)
-            .font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
