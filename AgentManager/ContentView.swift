@@ -3,28 +3,30 @@ import SwiftUI
 
 /// The Agent Manager panel shown when the menu bar item is clicked.
 ///
-/// M01-S02 establishes only the menu bar shell. The agent list, detail view,
-/// copy-prompt action, and local persistence arrive in later M01 cards, so this
-/// is intentionally a small placeholder with a working Quit control.
+/// Hosts the agent browser (list/detail) over the seed agents from the
+/// M01-S03 provider, with a Quit control in the footer. Copy-to-clipboard
+/// (M01-S05), durable persistence (M01-S06), and the global shortcut (M01-S07)
+/// are intentionally out of scope here.
 struct ContentView: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Agent Manager")
-                .font(.headline)
+    private let agents: [Agent] = AgentProvider().loadAgents()
 
-            Text("Your reusable AI agents will live here.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+    var body: some View {
+        VStack(spacing: 0) {
+            AgentBrowserView(agents: agents)
+                .frame(width: 520, height: 360)
 
             Divider()
 
-            Button("Quit Agent Manager") {
-                NSApplication.shared.terminate(nil)
+            HStack {
+                Spacer()
+                Button("Quit Agent Manager") {
+                    NSApplication.shared.terminate(nil)
+                }
+                .keyboardShortcut("q")
             }
-            .keyboardShortcut("q")
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
         }
-        .padding(16)
-        .frame(width: 280, alignment: .leading)
     }
 }
 
