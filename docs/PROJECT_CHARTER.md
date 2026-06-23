@@ -2,29 +2,40 @@
 
 ## Purpose
 
-Agent Manager is a native macOS app for managing reusable AI agents, prompts, workflows, handoffs, and review packets.
+Agent Manager is a native macOS **menu bar app** for storing reusable AI agents and
+copying their prompts to the clipboard. It is a local-first prompt vault that lives in
+the menu bar and stays out of the way until you need an agent's prompt.
 
-## V1 Scope
+## V1 Scope (M01 — Menu Bar Agent Vault)
 
-- Xcode project
-- SwiftUI app shell
-- Local-first data model
-- Agents
-- Prompts
-- Workflows
-- Handoffs
-- Copy/export actions
-- BATON workflow tracking
+- Native macOS app delivered as a **menu bar (status item) app**
+- Xcode project, Swift + SwiftUI
+- Local-first storage (no backend, no cloud)
+- Stores reusable **agents**, where each agent has:
+  - `name`
+  - `title`
+  - `description`
+  - `prompt`
+- **Copy prompt to clipboard** is the primary action
+- Minimal UI to add, edit, and delete agents
+- Keyboard shortcut to open the menu bar vault
 
 ## V1 Non-goals
 
+The following are explicitly **out of scope** for V1 / M01:
+
+- Workflows
+- Handoffs (as an app feature)
+- Review packets
+- Cloud sync
+- Backend service
+- PM2 process or server deployment
+- Public staging/production deployment
 - Chrome extension
 - Browser injection
-- Backend service
-- PM2 process
-- Public staging/production deployment
-- Cloud sync
-- Migration from old Prompt Manager codebase
+- Migration from the old Prompt Manager codebase
+
+These may be reconsidered in a later milestone, but nothing here is required for V1.
 
 ## Operating Model
 

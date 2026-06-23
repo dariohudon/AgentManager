@@ -2,15 +2,15 @@
 
 ## Status
 
-Project initialized locally.
+Project initialized locally. M01 scope being locked.
 
 ## Current Milestone
 
-M01 - Native macOS Foundation
+M01 - Menu Bar Agent Vault
 
 ## Current Branch
 
-main
+m01-s01-product-scope-lock
 
 ## Local Path
 
@@ -18,13 +18,17 @@ main
 
 ## Stable Decisions
 
-- Native macOS app
+- Native macOS menu bar app
 - Swift + SwiftUI
-- Local-first
+- Local-first storage (local JSON persistence)
+- Agents store: name, title, description, prompt
+- Copy prompt is the primary action
 - BATON-managed workflow
 - No Chrome extension foundation
 - No server deployment for V1
+- No workflows, handoffs, sync, or backend in M01
 
 ## Immediate Next Step
 
-Create M01-S01 card in BATON: Project Charter & Scope Lock.
+Complete M01-S01 (Product Scope Lock): finalize charter, operational state, and the
+M01 architecture document, then hand off for review.
