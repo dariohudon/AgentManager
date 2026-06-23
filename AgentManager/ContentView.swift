@@ -1,14 +1,15 @@
 import AppKit
 import SwiftUI
 
-/// The Agent Manager panel shown when the menu bar item is clicked.
+/// The Agent Manager panel shown when the menu bar item is clicked, and the
+/// content of the hotkey-opened window.
 ///
-/// Hosts the agent browser (list/detail) over an `AgentVault` backed by local
-/// JSON persistence, with a Quit control in the footer. Add/edit/delete and
-/// Copy Prompt live in the browser/detail views. The global summon shortcut is
-/// M01-S08.
+/// Hosts the agent browser (list/detail) over a shared `AgentVault` backed by
+/// local JSON persistence, with a Quit control in the footer. Add/edit/delete
+/// and Copy Prompt live in the browser/detail views. The vault is injected so
+/// the menu bar panel and the global-shortcut window share one source of truth.
 struct ContentView: View {
-    @State private var vault = AgentVault()
+    let vault: AgentVault
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,5 +32,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(vault: AgentVault(agents: SeedAgents.all))
 }

@@ -125,13 +125,27 @@ boundaries may shift slightly as M01 is built, but the feature-oriented grouping
 
 ## 6. Keyboard Shortcut Behavior
 
-- A keyboard shortcut opens the vault popover from anywhere, so copying a prompt is
-  fast and keyboard-driven.
-- Within the open vault, arrow keys move selection and Return/Enter triggers the
-  primary **Copy prompt** action for the selected agent.
-- Escape dismisses the popover.
-- The exact key combination is finalized during implementation; M01 only commits to
-  *having* a shortcut to open the vault and a key to copy the selected prompt.
+- **Shortcut: Control + Option + Space** opens Agent Manager from anywhere while the
+  app is running in the background (implemented in M01-S09).
+- Implementation: a Carbon `RegisterEventHotKey` hot key (`GlobalHotKey`) scoped to the
+  application's event target. On fire, the app activates and brings up a standalone
+  Agent Library window (`AgentManagerWindowController`) hosting the same `ContentView`
+  as the menu bar panel, backed by the shared `AgentVault`.
+- Why a window, not the menu bar popover: SwiftUI `MenuBarExtra` popovers can't be
+  opened programmatically, so the shortcut opens a real window instead of faking a
+  menu-bar click. The menu bar item remains the normal entry point and keeps working;
+  Quit still works from either surface.
+
+### Constraints (macOS)
+
+- **No special permissions required.** A Carbon app-scoped hot key does not need
+  Accessibility permission (unlike a `CGEventTap`). It works system-wide only while
+  Agent Manager is running.
+- **Possible conflict.** Control + Option + Space can collide with the macOS
+  input-source switching shortcut ("Select the next input source") when multiple input
+  sources are enabled. If the combination is already claimed, `RegisterEventHotKey`
+  fails; the app logs this and continues without the shortcut (the menu bar item still
+  works). A user-configurable shortcut is out of scope for M01.
 
 ## 7. Local JSON Persistence Choice
 

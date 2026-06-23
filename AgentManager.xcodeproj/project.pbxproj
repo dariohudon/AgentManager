@@ -11,12 +11,14 @@
 		123D177C3E6896EA255BE324 /* AgentEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DCA6A9F6EE6BFA83AAE6AA /* AgentEditorView.swift */; };
 		2226A27ED509050740F4D7BA /* AgentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79206EAB67E62C165FBDB83C /* AgentStore.swift */; };
 		246A829BF2586BCF0B964EFF /* AgentVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31DCF03C38C28A0813B446F /* AgentVault.swift */; };
+		31843B7889C7AF195E12320D /* AgentManagerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F4403489DB8A802D91C1E8 /* AgentManagerWindowController.swift */; };
 		335E686C979A17B919A83FF0 /* AgentManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99BE75BE160BAD6527535C /* AgentManagerApp.swift */; };
 		408BBDED51EC85445E184089 /* AgentManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05591F149C2EB3942557A48 /* AgentManagerTests.swift */; };
 		6E004170BA45EF9849CC05AA /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281154C81C4C47E1CD0C3FBB /* AgentRowView.swift */; };
 		A87A0E44B0A7608D0EA83C47 /* AgentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0F9C3E94B6AD0DB77B93EF /* AgentDetailView.swift */; };
 		A9FB21C46C22742650EAE9A5 /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79B6D99486C2FAD23858E05 /* Agent.swift */; };
 		D9DDF243044E372E8256037C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5567C2D793C1DBB07FEDB821 /* ContentView.swift */; };
+		DF4099DAE70861895FB6BC06 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */; };
 		E45BE87221A755F4D6B99CDC /* SeedAgents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CE6B6594343DF57A4BFDF3 /* SeedAgents.swift */; };
 		EBA8505DBFC159C2815FD20C /* PromptPasteboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F1588F5A346D4E227581C3 /* PromptPasteboard.swift */; };
 /* End PBXBuildFile section */
@@ -40,6 +42,8 @@
 		3A99BE75BE160BAD6527535C /* AgentManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentManagerApp.swift; sourceTree = "<group>"; };
 		5567C2D793C1DBB07FEDB821 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		79206EAB67E62C165FBDB83C /* AgentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentStore.swift; sourceTree = "<group>"; };
+		7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKey.swift; sourceTree = "<group>"; };
+		90F4403489DB8A802D91C1E8 /* AgentManagerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentManagerWindowController.swift; sourceTree = "<group>"; };
 		A31DCF03C38C28A0813B446F /* AgentVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentVault.swift; sourceTree = "<group>"; };
 		D55C97DDB7E84A4603D05DE9 /* AgentManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9F1588F5A346D4E227581C3 /* PromptPasteboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPasteboard.swift; sourceTree = "<group>"; };
@@ -63,6 +67,8 @@
 		513A56DF045E3BF537ED9780 /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				90F4403489DB8A802D91C1E8 /* AgentManagerWindowController.swift */,
+				7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */,
 				D9F1588F5A346D4E227581C3 /* PromptPasteboard.swift */,
 			);
 			path = Support;
@@ -212,10 +218,12 @@
 				A87A0E44B0A7608D0EA83C47 /* AgentDetailView.swift in Sources */,
 				123D177C3E6896EA255BE324 /* AgentEditorView.swift in Sources */,
 				335E686C979A17B919A83FF0 /* AgentManagerApp.swift in Sources */,
+				31843B7889C7AF195E12320D /* AgentManagerWindowController.swift in Sources */,
 				6E004170BA45EF9849CC05AA /* AgentRowView.swift in Sources */,
 				2226A27ED509050740F4D7BA /* AgentStore.swift in Sources */,
 				246A829BF2586BCF0B964EFF /* AgentVault.swift in Sources */,
 				D9DDF243044E372E8256037C /* ContentView.swift in Sources */,
+				DF4099DAE70861895FB6BC06 /* GlobalHotKey.swift in Sources */,
 				EBA8505DBFC159C2815FD20C /* PromptPasteboard.swift in Sources */,
 				E45BE87221A755F4D6B99CDC /* SeedAgents.swift in Sources */,
 			);
