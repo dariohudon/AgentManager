@@ -112,18 +112,20 @@ final class AgentManagerTests: XCTestCase {
             name: "scout",
             title: "Scout",
             description: "Finds things",
+            category: "Research",
             prompt: "You are the Scout.",
             now: Self.fixedDate
         )
 
         XCTAssertEqual(vault.agents.count, before + 1)
+        XCTAssertEqual(added.category, "Research")
         XCTAssertEqual(added.createdAt, Self.fixedDate)
         XCTAssertEqual(added.updatedAt, Self.fixedDate)
 
         // Reload from disk = simulated restart.
         let reloaded = try AgentStore(storeURL: url).load()
         XCTAssertEqual(reloaded.count, before + 1)
-        XCTAssertTrue(reloaded.contains { $0.id == added.id && $0.prompt == "You are the Scout." })
+        XCTAssertTrue(reloaded.contains { $0.id == added.id && $0.category == "Research" })
     }
 
     func testEditUpdatesFieldsBumpsUpdatedAtAndPreservesCreatedAt() throws {
@@ -137,17 +139,19 @@ final class AgentManagerTests: XCTestCase {
             name: "renamed",
             title: "Renamed",
             description: "new desc",
+            category: "Recategorized",
             prompt: "new prompt",
             now: Self.fixedDate
         )
 
         let edited = try XCTUnwrap(vault.agents.first { $0.id == original.id })
         XCTAssertEqual(edited.prompt, "new prompt")
+        XCTAssertEqual(edited.category, "Recategorized")
         XCTAssertEqual(edited.createdAt, original.createdAt)
         XCTAssertEqual(edited.updatedAt, Self.fixedDate)
 
         let reloaded = try AgentStore(storeURL: url).load()
-        XCTAssertEqual(reloaded.first { $0.id == original.id }?.prompt, "new prompt")
+        XCTAssertEqual(reloaded.first { $0.id == original.id }?.category, "Recategorized")
     }
 
     func testDeleteRemovesAgentAndStaysDeletedAfterRestart() throws {
@@ -162,5 +166,55 @@ final class AgentManagerTests: XCTestCase {
 
         let reloaded = try AgentStore(storeURL: url).load()
         XCTAssertFalse(reloaded.contains { $0.id == victim.id })
+    }
+
+    // MARK: - Categories (M01-S08)
+
+    func testSeedAgentsHaveExpectedCategories() {
+        XCTAssertEqual(SeedAgents.architect.category, "Strategy")
+        XCTAssertEqual(SeedAgents.implementer.category, "Operations")
+        XCTAssertEqual(SeedAgents.reviewer.category, "Quality Assurance")
+    }
+
+    func testCategoryEncodesAndDecodes() throws {
+        let agent = SeedAgents.architect
+        let data = try JSONEncoder().encode(agent)
+
+        // category is written to JSON...
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(json.contains("\"category\""))
+        XCTAssertTrue(json.contains("Strategy"))
+
+        // ...and round-trips.
+        let decoded = try JSONDecoder().decode(Agent.self, from: data)
+        XCTAssertEqual(decoded, agent)
+    }
+
+    func testLegacyJSONWithoutCategoryDefaultsToGeneral() throws {
+        // A record saved before categories existed (no "category" key).
+        let legacy = """
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "legacy",
+          "title": "Legacy",
+          "description": "Saved before categories existed",
+          "prompt": "Legacy prompt",
+          "createdAt": 0,
+          "updatedAt": 0
+        }
+        """
+        let decoded = try JSONDecoder().decode(Agent.self, from: Data(legacy.utf8))
+        XCTAssertEqual(decoded.category, Agent.defaultCategory)
+        XCTAssertEqual(decoded.category, "General")
+    }
+
+    func testCategorySurvivesSaveReload() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        try AgentStore(storeURL: url).save(SeedAgents.all)
+
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertEqual(reloaded.first { $0.name == "architect" }?.category, "Strategy")
+        XCTAssertEqual(reloaded.first { $0.name == "reviewer" }?.category, "Quality Assurance")
     }
 }

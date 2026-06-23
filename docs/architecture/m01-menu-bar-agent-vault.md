@@ -6,18 +6,37 @@
 
 ## 1. V1 Product Scope
 
-Agent Manager V1 is a **native macOS menu bar app** that acts as a local vault of
-reusable AI agents. The user opens the vault from the menu bar, picks an agent, and
-copies its prompt to the clipboard.
+Agent Manager V1 is a **native macOS menu bar app** that acts as a local,
+capability-first **Agent Library**. It is not a flat prompt list — it is organized
+around capabilities. The mental model is:
+
+```
+Agent Library
+└─ Category
+   └─ Agent / Capability
+      └─ Instructions (prompt)
+```
+
+The user opens the library from the menu bar, browses agents grouped by category,
+picks one, and copies its instructions (prompt) to the clipboard.
 
 In scope for M01:
 
 - A menu bar (status item) app with no Dock-first window requirement.
+- An Agent Library organized by **category**.
 - Store, list, add, edit, and delete agents.
-- Each agent holds: `name`, `title`, `description`, `prompt`.
+- Each agent holds: `name`, `title`, `description`, `category`, `prompt`.
+- Agent list is grouped by category.
 - **Copy prompt to clipboard** as the primary, one-action-away interaction.
-- Open the vault via a global/registered keyboard shortcut.
+- Open the library via a global/registered keyboard shortcut.
 - Persist agents locally as JSON on disk.
+
+Deferred to **M02+** (explicitly out of M01): the full tabbed Agent page and any
+deeper capability modeling — inputs schema, examples library, validation checklists,
+version history, usage tracking, and capability engines such as Claude Skills, Custom
+GPTs, MCP tools, automations, templates, and checklists. M01 implements the smallest
+practical Agent Library: categories, agents, instructions, add/edit/delete, and local
+JSON persistence.
 
 ## 2. Non-goals
 
@@ -44,12 +63,14 @@ Agent
 ├─ name:        String      // short handle (e.g. "code-reviewer")
 ├─ title:       String      // human-friendly label (e.g. "Code Reviewer")
 ├─ description: String      // what the agent is for
-├─ prompt:      String      // the reusable prompt text that gets copied
+├─ category:    String      // capability grouping (e.g. "Strategy"); default "General"
+├─ prompt:      String      // the instructions / reusable prompt text that gets copied
 ├─ createdAt:   Date
 └─ updatedAt:   Date
 ```
 
-The on-disk vault is the collection of agents:
+The on-disk vault is the collection of agents (`AgentVault` in the UI layer is the
+observable, persistence-backed store; on disk it is a JSON array of `Agent`):
 
 ```
 AgentVault
@@ -58,9 +79,11 @@ AgentVault
 
 Notes:
 
-- `id`, `createdAt`, and `updatedAt` are implementation conveniences; the four
-  user-facing fields required by the acceptance criteria are `name`, `title`,
-  `description`, and `prompt`.
+- `id`, `createdAt`, and `updatedAt` are implementation conveniences; the user-facing
+  fields are `name`, `title`, `description`, `category`, and `prompt`.
+- `category` groups agents in the library. Agents without a category — including JSON
+  written before categories existed — default to `Agent.defaultCategory` (`"General"`),
+  so older data files load safely.
 - Data is treated immutably in the UI layer: edits produce a new `Agent` value
   rather than mutating in place.
 
@@ -148,13 +171,17 @@ Card order for the M01 milestone (mirrors BATON):
    writes).
 7. **M01-S07 — Add / Edit / Delete Agents** — create, edit, and delete agents,
    persisting changes through `AgentStore.save`.
-8. **M01-S08 — Global Keyboard Shortcut** — open the vault via a global shortcut and
+8. **M01-S08 — Categorized Agent Library** — add `category` to `Agent`, group the
+   library by category, support category in add/edit, and frame the app as a
+   capability-first Agent Library (not a flat prompt list).
+9. **M01-S09 — Global Keyboard Shortcut** — open the library via a global shortcut and
    copy the selected agent's prompt from the keyboard.
-9. **M01-S09 — Codex Review and M01 Lock** — final review and lock of the M01
-   milestone.
+10. **M01-S10 — Codex Review and M01 Lock** — final review and lock of the M01
+    milestone.
 
-Sequence note: Dario confirmed that add/edit/delete of agents/prompts is in scope for
-M01, added here as **M01-S07**, which shifts the global keyboard shortcut to
-**M01-S08** and the final review/lock to **M01-S09**. The BATON cards should be
-reconciled to match (the prior card set listed S07 as the keyboard shortcut and S08 as
-the review/lock).
+Sequence note: Dario reframed M01 as a capability-first Agent Library and confirmed
+category support is in scope, added here as **M01-S08**, which shifts the global
+keyboard shortcut to **M01-S09** and the final review/lock to **M01-S10**. The BATON
+cards have been reconciled to match. Advanced capability modeling (tabbed Agent page,
+inputs, examples, validation, versions, usage, and capability engines like Claude
+Skills / Custom GPTs / MCP tools) is deferred to M02+.

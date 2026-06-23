@@ -23,6 +23,7 @@ struct AgentEditorView: View {
     @State private var name = ""
     @State private var title = ""
     @State private var description = ""
+    @State private var category = Agent.defaultCategory
     @State private var prompt = ""
 
     var body: some View {
@@ -33,6 +34,7 @@ struct AgentEditorView: View {
             Form {
                 TextField("Name", text: $name)
                 TextField("Title", text: $title)
+                TextField("Category", text: $category)
                 TextField("Description", text: $description)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -82,20 +84,31 @@ struct AgentEditorView: View {
             name = agent.name
             title = agent.title
             description = agent.description
+            category = agent.category
             prompt = agent.prompt
         }
     }
 
     private func save() {
+        let resolvedCategory = category.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalCategory = resolvedCategory.isEmpty ? Agent.defaultCategory : resolvedCategory
+
         switch mode {
         case .add:
-            vault.add(name: name, title: title, description: description, prompt: prompt)
+            vault.add(
+                name: name,
+                title: title,
+                description: description,
+                category: finalCategory,
+                prompt: prompt
+            )
         case .edit(let agent):
             vault.update(
                 id: agent.id,
                 name: name,
                 title: title,
                 description: description,
+                category: finalCategory,
                 prompt: prompt
             )
         }

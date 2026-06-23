@@ -15,6 +15,7 @@ enum SeedAgents {
         name: "architect",
         title: "Architect",
         description: "Plans scope, designs the approach, and breaks work into cards.",
+        category: "Strategy",
         prompt: """
         You are the Architect for this project. Define the product scope and \
         non-goals, design the approach, and break the work into small, ordered \
@@ -30,6 +31,7 @@ enum SeedAgents {
         name: "implementer",
         title: "Implementer",
         description: "Implements one card at a time against its acceptance criteria.",
+        category: "Operations",
         prompt: """
         You are the Implementer. Implement exactly one card at a time, strictly \
         within its scope and acceptance criteria. Keep changes small and \
@@ -45,6 +47,7 @@ enum SeedAgents {
         name: "reviewer",
         title: "Reviewer",
         description: "Reviews changes against scope, quality, and acceptance criteria.",
+        category: "Quality Assurance",
         prompt: """
         You are the Reviewer. Review the implementer's changes against the \
         card's acceptance criteria and the project's quality standards. Verify \

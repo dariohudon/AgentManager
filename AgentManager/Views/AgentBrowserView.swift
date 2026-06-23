@@ -55,10 +55,17 @@ struct AgentBrowserView: View {
 
     private var sidebar: some View {
         VStack(spacing: 0) {
-            List(vault.agents, selection: $selectedAgentID) { agent in
-                AgentRowView(agent: agent)
+            List(selection: $selectedAgentID) {
+                ForEach(groupedByCategory, id: \.category) { group in
+                    Section(group.category) {
+                        ForEach(group.agents) { agent in
+                            AgentRowView(agent: agent)
+                                .tag(agent.id)
+                        }
+                    }
+                }
             }
-            .navigationTitle("Agents")
+            .navigationTitle("Agent Library")
 
             Divider()
 
@@ -76,6 +83,14 @@ struct AgentBrowserView: View {
 
     private var selectedAgent: Agent? {
         vault.agents.first { $0.id == selectedAgentID }
+    }
+
+    /// Agents grouped into categories (categories sorted alphabetically, agents
+    /// sorted by name within each category).
+    private var groupedByCategory: [(category: String, agents: [Agent])] {
+        Dictionary(grouping: vault.agents, by: \.category)
+            .map { (category: $0.key, agents: $0.value.sorted { $0.name < $1.name }) }
+            .sorted { $0.category < $1.category }
     }
 
     private var deletionDialogBinding: Binding<Bool> {

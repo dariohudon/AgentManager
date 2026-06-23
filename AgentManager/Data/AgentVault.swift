@@ -34,6 +34,7 @@ final class AgentVault {
         name: String,
         title: String,
         description: String,
+        category: String,
         prompt: String,
         now: Date = Date()
     ) -> Agent {
@@ -41,6 +42,7 @@ final class AgentVault {
             name: name,
             title: title,
             description: description,
+            category: category,
             prompt: prompt,
             createdAt: now,
             updatedAt: now
@@ -57,6 +59,7 @@ final class AgentVault {
         name: String,
         title: String,
         description: String,
+        category: String,
         prompt: String,
         now: Date = Date()
     ) {
@@ -67,6 +70,7 @@ final class AgentVault {
             name: name,
             title: title,
             description: description,
+            category: category,
             prompt: prompt,
             createdAt: existing.createdAt,
             updatedAt: now
