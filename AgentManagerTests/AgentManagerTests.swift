@@ -105,7 +105,7 @@ final class AgentManagerTests: XCTestCase {
     func testAddPersistsNewAgentAndSurvivesRestart() throws {
         let url = makeTempStoreURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
-        let vault = AgentVault(store: AgentStore(storeURL: url))
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
         let before = vault.agents.count
 
         let added = vault.add(
@@ -113,12 +113,14 @@ final class AgentManagerTests: XCTestCase {
             title: "Scout",
             description: "Finds things",
             category: "Research",
+            preferredAI: "Perplexity",
             prompt: "You are the Scout.",
             now: Self.fixedDate
         )
 
         XCTAssertEqual(vault.agents.count, before + 1)
         XCTAssertEqual(added.category, "Research")
+        XCTAssertEqual(added.preferredAI, "Perplexity")
         XCTAssertEqual(added.createdAt, Self.fixedDate)
         XCTAssertEqual(added.updatedAt, Self.fixedDate)
 
@@ -131,7 +133,7 @@ final class AgentManagerTests: XCTestCase {
     func testEditUpdatesFieldsBumpsUpdatedAtAndPreservesCreatedAt() throws {
         let url = makeTempStoreURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
-        let vault = AgentVault(store: AgentStore(storeURL: url))
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
         let original = vault.agents[0]
 
         vault.update(
@@ -140,6 +142,7 @@ final class AgentManagerTests: XCTestCase {
             title: "Renamed",
             description: "new desc",
             category: "Recategorized",
+            preferredAI: "Claude",
             prompt: "new prompt",
             now: Self.fixedDate
         )
@@ -147,6 +150,7 @@ final class AgentManagerTests: XCTestCase {
         let edited = try XCTUnwrap(vault.agents.first { $0.id == original.id })
         XCTAssertEqual(edited.prompt, "new prompt")
         XCTAssertEqual(edited.category, "Recategorized")
+        XCTAssertEqual(edited.preferredAI, "Claude")
         XCTAssertEqual(edited.createdAt, original.createdAt)
         XCTAssertEqual(edited.updatedAt, Self.fixedDate)
 
@@ -157,7 +161,7 @@ final class AgentManagerTests: XCTestCase {
     func testDeleteRemovesAgentAndStaysDeletedAfterRestart() throws {
         let url = makeTempStoreURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
-        let vault = AgentVault(store: AgentStore(storeURL: url))
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
         let victim = vault.agents[0]
 
         vault.delete(id: victim.id)
@@ -216,5 +220,100 @@ final class AgentManagerTests: XCTestCase {
         let reloaded = try AgentStore(storeURL: url).load()
         XCTAssertEqual(reloaded.first { $0.name == "architect" }?.category, "Strategy")
         XCTAssertEqual(reloaded.first { $0.name == "reviewer" }?.category, "Quality Assurance")
+    }
+
+    // MARK: - Preferred AI + managed dropdowns (M02-S02)
+
+    /// A unique temporary options-store URL, isolated from real app data.
+    private func makeTempOptionsURL() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("AgentManagerTests-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("options.json", isDirectory: false)
+    }
+
+    func testSeedAgentsHaveExpectedPreferredAI() {
+        XCTAssertEqual(SeedAgents.architect.preferredAI, "ChatGPT")
+        XCTAssertEqual(SeedAgents.implementer.preferredAI, "Claude")
+        XCTAssertEqual(SeedAgents.reviewer.preferredAI, "ChatGPT")
+    }
+
+    func testPreferredAIEncodesAndDecodes() throws {
+        let agent = SeedAgents.implementer
+        let data = try JSONEncoder().encode(agent)
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertTrue(json.contains("\"preferredAI\""))
+
+        let decoded = try JSONDecoder().decode(Agent.self, from: data)
+        XCTAssertEqual(decoded, agent)
+        XCTAssertEqual(decoded.preferredAI, "Claude")
+    }
+
+    func testLegacyJSONWithoutPreferredAIDefaultsToChatGPT() throws {
+        // A record saved before category/preferredAI existed.
+        let legacy = """
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "legacy",
+          "title": "Legacy",
+          "description": "Saved before preferredAI existed",
+          "prompt": "Legacy prompt",
+          "createdAt": 0,
+          "updatedAt": 0
+        }
+        """
+        let decoded = try JSONDecoder().decode(Agent.self, from: Data(legacy.utf8))
+        XCTAssertEqual(decoded.preferredAI, Agent.defaultPreferredAI)
+        XCTAssertEqual(decoded.preferredAI, "ChatGPT")
+    }
+
+    func testDefaultPreferredAIOptionsExist() {
+        let vault = AgentVault(agents: SeedAgents.all)
+        for expected in ["ChatGPT", "Claude", "Perplexity", "Zapier", "Descript"] {
+            XCTAssertTrue(vault.preferredAIChoices.contains(expected), "missing \(expected)")
+        }
+    }
+
+    func testCategoryChoicesUseExistingCategories() {
+        let vault = AgentVault(agents: SeedAgents.all)
+        let choices = vault.categoryChoices
+        XCTAssertTrue(choices.contains("Strategy"))
+        XCTAssertTrue(choices.contains("Operations"))
+        XCTAssertTrue(choices.contains("Quality Assurance"))
+        XCTAssertTrue(choices.contains(Agent.defaultCategory))
+    }
+
+    func testAddedPreferredAIOptionPersists() throws {
+        let url = makeTempOptionsURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(agents: SeedAgents.all, optionsStore: OptionsStore(storeURL: url))
+
+        vault.addPreferredAIOption("Gemini")
+        XCTAssertTrue(vault.preferredAIChoices.contains("Gemini"))
+
+        let reloaded = try OptionsStore(storeURL: url).load()
+        XCTAssertTrue(reloaded.preferredAIs.contains("Gemini"))
+    }
+
+    func testAddedCategoryOptionPersists() throws {
+        let url = makeTempOptionsURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(agents: SeedAgents.all, optionsStore: OptionsStore(storeURL: url))
+
+        vault.addCategoryOption("Research")
+        XCTAssertTrue(vault.categoryChoices.contains("Research"))
+
+        let reloaded = try OptionsStore(storeURL: url).load()
+        XCTAssertTrue(reloaded.categories.contains("Research"))
+    }
+
+    func testOptionsStoreFirstRunWritesDefaults() throws {
+        let url = makeTempOptionsURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let store = OptionsStore(storeURL: url)
+
+        XCTAssertFalse(store.hasLocalData)
+        let loaded = try store.load()
+        XCTAssertEqual(loaded, .initial)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
     }
 }

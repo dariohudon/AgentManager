@@ -23,12 +23,21 @@ struct AgentDetailView: View {
                     Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
                 }
 
-                Text(agent.category)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(.quaternary, in: Capsule())
+                HStack(spacing: 6) {
+                    Text(agent.category)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(.quaternary, in: Capsule())
+
+                    Label(agent.preferredAI, systemImage: "sparkles")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(.quaternary, in: Capsule())
+                }
 
                 Text(agent.description)
                     .font(.subheadline)

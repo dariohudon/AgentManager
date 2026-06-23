@@ -12,11 +12,16 @@ struct Agent: Identifiable, Codable, Equatable, Sendable {
     /// saved before categories existed).
     static let defaultCategory = "General"
 
+    /// Preferred AI assigned to agents that have none (including older JSON
+    /// records saved before the field existed).
+    static let defaultPreferredAI = "ChatGPT"
+
     let id: UUID
     let name: String
     let title: String
     let description: String
     let category: String
+    let preferredAI: String
     let prompt: String
     let createdAt: Date
     let updatedAt: Date
@@ -27,6 +32,7 @@ struct Agent: Identifiable, Codable, Equatable, Sendable {
         title: String,
         description: String,
         category: String = Agent.defaultCategory,
+        preferredAI: String = Agent.defaultPreferredAI,
         prompt: String,
         createdAt: Date,
         updatedAt: Date
@@ -36,18 +42,19 @@ struct Agent: Identifiable, Codable, Equatable, Sendable {
         self.title = title
         self.description = description
         self.category = category
+        self.preferredAI = preferredAI
         self.prompt = prompt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, title, description, category, prompt, createdAt, updatedAt
+        case id, name, title, description, category, preferredAI, prompt, createdAt, updatedAt
     }
 
-    /// Custom decoding so JSON written before categories existed still loads:
-    /// a missing `category` falls back to `defaultCategory`. Encoding stays
-    /// synthesized and always writes `category`.
+    /// Custom decoding so JSON written before `category` / `preferredAI` existed
+    /// still loads: missing fields fall back to their defaults. Encoding stays
+    /// synthesized and always writes every field.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -56,6 +63,8 @@ struct Agent: Identifiable, Codable, Equatable, Sendable {
         description = try container.decode(String.self, forKey: .description)
         category = try container.decodeIfPresent(String.self, forKey: .category)
             ?? Agent.defaultCategory
+        preferredAI = try container.decodeIfPresent(String.self, forKey: .preferredAI)
+            ?? Agent.defaultPreferredAI
         prompt = try container.decode(String.self, forKey: .prompt)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)

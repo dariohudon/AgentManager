@@ -1,32 +1,83 @@
 import Foundation
 import Observation
 
-/// Observable, in-memory collection of agents backed by `AgentStore`.
+/// Observable, in-memory collection of agents backed by `AgentStore`, plus the
+/// user-managed dropdown options backed by `OptionsStore`.
 ///
-/// The vault loads agents on creation and persists every add/edit/delete
-/// through `AgentStore.save`, so changes survive an app restart. Mutations
-/// follow value semantics — an edit replaces an `Agent` with a new value rather
-/// than mutating it in place.
+/// The vault loads agents and options on creation and persists every
+/// add/edit/delete (and any newly added dropdown option), so changes survive an
+/// app restart. Mutations follow value semantics — an edit replaces an `Agent`
+/// with a new value rather than mutating it in place.
 @Observable
 final class AgentVault {
     private(set) var agents: [Agent]
+    private(set) var options: LibraryOptions
 
     private let store: AgentStore?
+    private let optionsStore: OptionsStore?
 
-    /// Loads agents from the given store (the default Application Support store
-    /// when omitted), falling back to the seed agents if the store can't be
-    /// resolved or read.
-    init(store: AgentStore? = AgentStore()) {
+    /// Loads agents and options from the given stores (the default Application
+    /// Support stores when omitted), falling back to the seed agents / default
+    /// options if a store can't be resolved or read.
+    init(store: AgentStore? = AgentStore(), optionsStore: OptionsStore? = OptionsStore()) {
         self.store = store
+        self.optionsStore = optionsStore
         self.agents = store.flatMap { try? $0.load() } ?? SeedAgents.all
+        self.options = optionsStore.flatMap { try? $0.load() } ?? .initial
     }
 
-    /// In-memory vault with explicit agents and no persistence. Intended for
-    /// previews and tests of empty/seed states.
-    init(agents: [Agent], store: AgentStore? = nil) {
+    /// In-memory vault with explicit agents/options and no persistence. Intended
+    /// for previews and tests of empty/seed states.
+    init(
+        agents: [Agent],
+        options: LibraryOptions = .initial,
+        store: AgentStore? = nil,
+        optionsStore: OptionsStore? = nil
+    ) {
         self.store = store
+        self.optionsStore = optionsStore
         self.agents = agents
+        self.options = options
     }
+
+    // MARK: - Dropdown choices
+
+    /// Category choices for the editor: every category currently in use, plus
+    /// any custom categories the user added, plus the default category. Sorted.
+    var categoryChoices: [String] {
+        var set = Set(agents.map(\.category))
+        set.formUnion(options.categories)
+        set.insert(Agent.defaultCategory)
+        return set.sorted()
+    }
+
+    /// Preferred AI choices for the editor: the stored list, guaranteed to
+    /// include all the built-in defaults (defaults first, then any custom).
+    var preferredAIChoices: [String] {
+        var result = options.preferredAIs
+        for ai in LibraryOptions.defaultPreferredAIs where !result.contains(ai) {
+            result.append(ai)
+        }
+        return result
+    }
+
+    /// Adds a custom category option (if non-empty and new) and persists.
+    func addCategoryOption(_ name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !categoryChoices.contains(trimmed) else { return }
+        options.categories.append(trimmed)
+        persistOptions()
+    }
+
+    /// Adds a custom Preferred AI option (if non-empty and new) and persists.
+    func addPreferredAIOption(_ name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !preferredAIChoices.contains(trimmed) else { return }
+        options.preferredAIs.append(trimmed)
+        persistOptions()
+    }
+
+    // MARK: - Agent CRUD
 
     /// Adds a new agent and persists. Returns the created agent.
     @discardableResult
@@ -35,6 +86,7 @@ final class AgentVault {
         title: String,
         description: String,
         category: String,
+        preferredAI: String,
         prompt: String,
         now: Date = Date()
     ) -> Agent {
@@ -43,6 +95,7 @@ final class AgentVault {
             title: title,
             description: description,
             category: category,
+            preferredAI: preferredAI,
             prompt: prompt,
             createdAt: now,
             updatedAt: now
@@ -60,6 +113,7 @@ final class AgentVault {
         title: String,
         description: String,
         category: String,
+        preferredAI: String,
         prompt: String,
         now: Date = Date()
     ) {
@@ -71,6 +125,7 @@ final class AgentVault {
             title: title,
             description: description,
             category: category,
+            preferredAI: preferredAI,
             prompt: prompt,
             createdAt: existing.createdAt,
             updatedAt: now
@@ -86,5 +141,9 @@ final class AgentVault {
 
     private func persist() {
         try? store?.save(agents)
+    }
+
+    private func persistOptions() {
+        try? optionsStore?.save(options)
     }
 }
