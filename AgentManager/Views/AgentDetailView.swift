@@ -1,8 +1,13 @@
 import SwiftUI
 
-/// Detail for the selected agent: title, description, and the full prompt.
-/// The prompt sits in a scrollable region so long text stays readable. Actions
-/// let the user copy the prompt, edit the agent, or delete it.
+/// Inspection view for the selected agent: a calm header (name + a single
+/// metadata line + optional purpose), a clear primary action, and the prompt
+/// as the focus of the page.
+///
+/// Visual hierarchy (M03-S03): **Copy Prompt** is the prominent primary action;
+/// Edit and Duplicate are quiet secondary icon buttons; Delete is tucked into a
+/// "more" menu so it never competes with the primary/secondary actions. Copy
+/// Prompt still copies only `agent.prompt`.
 struct AgentDetailView: View {
     let agent: Agent
     let onEdit: () -> Void
@@ -11,74 +16,86 @@ struct AgentDetailView: View {
 
     @State private var didCopy = false
 
+    private var trimmedDescription: String {
+        agent.description.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(agent.title)
-                        .font(.title2.weight(.semibold))
+            VStack(alignment: .leading, spacing: 14) {
+                header
 
-                    Spacer()
-
-                    Button("Edit", systemImage: "pencil", action: onEdit)
-                    Button("Duplicate", systemImage: "plus.square.on.square", action: onDuplicate)
-                        .help("Duplicate this agent")
-                    Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
-                }
-
-                HStack(spacing: 6) {
-                    Text(agent.category)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(.quaternary, in: Capsule())
-
-                    Label(agent.preferredAI, systemImage: "sparkles")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(.quaternary, in: Capsule())
-                }
-
-                Text(agent.description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                actionBar
 
                 Divider()
 
-                HStack(spacing: 8) {
-                    Text("Prompt")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-
-                    if didCopy {
-                        Label("Copied", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                            .transition(.opacity)
-                    }
-
-                    Button {
-                        copyPrompt()
-                    } label: {
-                        Label("Copy Prompt", systemImage: "doc.on.doc")
-                    }
-                }
+                Text("Instructions")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
 
                 Text(agent.prompt)
                     .font(.body)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(16)
+            .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onChange(of: agent.id) {
             didCopy = false
+        }
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(agent.title.isEmpty ? agent.name : agent.title)
+                .font(.title2.weight(.semibold))
+
+            Text("\(agent.category) • \(agent.preferredAI)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            if !trimmedDescription.isEmpty {
+                Text(trimmedDescription)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    private var actionBar: some View {
+        HStack(spacing: 8) {
+            Button(action: copyPrompt) {
+                Label(didCopy ? "Copied" : "Copy Prompt",
+                      systemImage: didCopy ? "checkmark" : "doc.on.doc")
+            }
+            .buttonStyle(.borderedProminent)
+
+            Spacer()
+
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+            }
+            .help("Edit agent")
+
+            Button(action: onDuplicate) {
+                Image(systemName: "plus.square.on.square")
+            }
+            .help("Duplicate agent")
+
+            Menu {
+                Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("More actions")
         }
     }
 
@@ -94,5 +111,5 @@ struct AgentDetailView: View {
 
 #Preview {
     AgentDetailView(agent: SeedAgents.implementer, onEdit: {}, onDuplicate: {}, onDelete: {})
-        .frame(width: 340, height: 360)
+        .frame(width: 360, height: 400)
 }
