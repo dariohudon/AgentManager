@@ -1,0 +1,31 @@
+name: AgentManager
+options:
+  bundleIdPrefix: ca.octopusandson
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+targets:
+  AgentManager:
+    type: application
+    platform: macOS
+    sources:
+      - AgentManager
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ca.octopusandson.AgentManager
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+  AgentManagerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - AgentManagerTests
+    dependencies:
+      - target: AgentManager
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ca.octopusandson.AgentManagerTests
+        GENERATE_INFOPLIST_FILE: YES
