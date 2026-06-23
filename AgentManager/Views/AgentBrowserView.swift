@@ -56,6 +56,7 @@ struct AgentBrowserView: View {
                         AgentDetailView(
                             agent: agent,
                             onEdit: { mode = .editor(.edit(agent)) },
+                            onDuplicate: { duplicate(agent) },
                             onDelete: { mode = .confirmDelete(agent) }
                         )
                     } else {
@@ -164,6 +165,14 @@ struct AgentBrowserView: View {
             selectedAgentID = vault.agents.first?.id
         }
         mode = .browse
+    }
+
+    /// Duplicates the agent, expands the copy's category so it's visible, and
+    /// selects it.
+    private func duplicate(_ agent: Agent) {
+        guard let copy = vault.duplicate(id: agent.id) else { return }
+        expandedCategories.insert(copy.category)
+        selectedAgentID = copy.id
     }
 
     private var emptyState: some View {

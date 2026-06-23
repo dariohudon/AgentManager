@@ -6,6 +6,7 @@ import SwiftUI
 struct AgentDetailView: View {
     let agent: Agent
     let onEdit: () -> Void
+    let onDuplicate: () -> Void
     let onDelete: () -> Void
 
     @State private var didCopy = false
@@ -20,6 +21,8 @@ struct AgentDetailView: View {
                     Spacer()
 
                     Button("Edit", systemImage: "pencil", action: onEdit)
+                    Button("Duplicate", systemImage: "plus.square.on.square", action: onDuplicate)
+                        .help("Duplicate this agent")
                     Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
                 }
 
@@ -90,6 +93,6 @@ struct AgentDetailView: View {
 }
 
 #Preview {
-    AgentDetailView(agent: SeedAgents.implementer, onEdit: {}, onDelete: {})
+    AgentDetailView(agent: SeedAgents.implementer, onEdit: {}, onDuplicate: {}, onDelete: {})
         .frame(width: 340, height: 360)
 }

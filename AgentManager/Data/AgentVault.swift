@@ -133,6 +133,28 @@ final class AgentVault {
         persist()
     }
 
+    /// Duplicates the agent with the given id: a new `Agent` with a fresh `id`
+    /// and timestamps, a name marked as a copy, and every other field
+    /// (category, preferredAI, title, description, prompt) preserved. Persists
+    /// and returns the duplicate, or nil if the id is unknown.
+    @discardableResult
+    func duplicate(id: Agent.ID, now: Date = Date()) -> Agent? {
+        guard let original = agents.first(where: { $0.id == id }) else { return nil }
+        let copy = Agent(
+            name: "\(original.name) Copy",
+            title: original.title,
+            description: original.description,
+            category: original.category,
+            preferredAI: original.preferredAI,
+            prompt: original.prompt,
+            createdAt: now,
+            updatedAt: now
+        )
+        agents.append(copy)
+        persist()
+        return copy
+    }
+
     /// Deletes the agent with the given id and persists.
     func delete(id: Agent.ID) {
         agents.removeAll { $0.id == id }

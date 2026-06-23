@@ -158,6 +158,31 @@ final class AgentManagerTests: XCTestCase {
         XCTAssertEqual(reloaded.first { $0.id == original.id }?.category, "Recategorized")
     }
 
+    func testDuplicateCopiesFieldsWithNewIdFreshTimestampsAndCopyName() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
+        let original = vault.agents[0]
+        let before = vault.agents.count
+
+        let copy = try XCTUnwrap(vault.duplicate(id: original.id, now: Self.fixedDate))
+
+        XCTAssertEqual(vault.agents.count, before + 1)
+        XCTAssertNotEqual(copy.id, original.id)
+        XCTAssertEqual(copy.createdAt, Self.fixedDate)
+        XCTAssertEqual(copy.updatedAt, Self.fixedDate)
+        XCTAssertEqual(copy.name, "\(original.name) Copy")
+        XCTAssertEqual(copy.title, original.title)
+        XCTAssertEqual(copy.description, original.description)
+        XCTAssertEqual(copy.category, original.category)
+        XCTAssertEqual(copy.preferredAI, original.preferredAI)
+        XCTAssertEqual(copy.prompt, original.prompt)
+
+        // Persists and survives "restart".
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertTrue(reloaded.contains { $0.id == copy.id && $0.name == copy.name })
+    }
+
     func testDeleteRemovesAgentAndStaysDeletedAfterRestart() throws {
         let url = makeTempStoreURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
