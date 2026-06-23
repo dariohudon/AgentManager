@@ -24,6 +24,7 @@
 		DF4099DAE70861895FB6BC06 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */; };
 		E45BE87221A755F4D6B99CDC /* SeedAgents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CE6B6594343DF57A4BFDF3 /* SeedAgents.swift */; };
 		EBA8505DBFC159C2815FD20C /* PromptPasteboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F1588F5A346D4E227581C3 /* PromptPasteboard.swift */; };
+		FA05002ACA35D7EE0887A1D9 /* DisplayText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48FE7D85E5D10D4FE8E72A42 /* DisplayText.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		27CE6B6594343DF57A4BFDF3 /* SeedAgents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedAgents.swift; sourceTree = "<group>"; };
 		281154C81C4C47E1CD0C3FBB /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
 		3A99BE75BE160BAD6527535C /* AgentManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentManagerApp.swift; sourceTree = "<group>"; };
+		48FE7D85E5D10D4FE8E72A42 /* DisplayText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayText.swift; sourceTree = "<group>"; };
 		5567C2D793C1DBB07FEDB821 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		79206EAB67E62C165FBDB83C /* AgentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentStore.swift; sourceTree = "<group>"; };
 		7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKey.swift; sourceTree = "<group>"; };
@@ -75,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				90F4403489DB8A802D91C1E8 /* AgentManagerWindowController.swift */,
+				48FE7D85E5D10D4FE8E72A42 /* DisplayText.swift */,
 				7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */,
 				D9F1588F5A346D4E227581C3 /* PromptPasteboard.swift */,
 			);
@@ -232,6 +235,7 @@
 				2226A27ED509050740F4D7BA /* AgentStore.swift in Sources */,
 				246A829BF2586BCF0B964EFF /* AgentVault.swift in Sources */,
 				D9DDF243044E372E8256037C /* ContentView.swift in Sources */,
+				FA05002ACA35D7EE0887A1D9 /* DisplayText.swift in Sources */,
 				DF4099DAE70861895FB6BC06 /* GlobalHotKey.swift in Sources */,
 				64D40FE1BCF64253FF8885A1 /* LibraryOptions.swift in Sources */,
 				A29E60EA0248E710548032CC /* OptionsStore.swift in Sources */,

@@ -331,6 +331,25 @@ final class AgentManagerTests: XCTestCase {
         XCTAssertTrue(reloaded.categories.contains("Research"))
     }
 
+    // MARK: - Display sanitization (M03-S06.5)
+
+    func testSanitizedForDisplayTreatsPlaceholdersAsEmpty() {
+        XCTAssertNil("".sanitizedForDisplay)
+        XCTAssertNil("   ".sanitizedForDisplay)
+        XCTAssertNil("-".sanitizedForDisplay)
+        XCTAssertNil("--".sanitizedForDisplay)
+        XCTAssertNil("—".sanitizedForDisplay)
+        XCTAssertNil("–".sanitizedForDisplay)
+        XCTAssertNil("  --  ".sanitizedForDisplay)
+    }
+
+    func testSanitizedForDisplayKeepsRealText() {
+        XCTAssertEqual("Reviewer".sanitizedForDisplay, "Reviewer")
+        XCTAssertEqual("  Reviewer  ".sanitizedForDisplay, "Reviewer")
+        // Dashes are fine when there's real content around them.
+        XCTAssertEqual("multi-step".sanitizedForDisplay, "multi-step")
+    }
+
     func testOptionsStoreFirstRunWritesDefaults() throws {
         let url = makeTempOptionsURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }

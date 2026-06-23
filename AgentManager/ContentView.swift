@@ -28,6 +28,10 @@ struct ContentView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
         }
+        // Opaque native window background so the menu bar popover and hotkey
+        // window read as a neutral content surface rather than letting the
+        // app's accent/translucency bleed through.
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 

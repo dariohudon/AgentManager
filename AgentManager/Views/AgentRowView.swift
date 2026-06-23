@@ -1,22 +1,18 @@
 import SwiftUI
 
 /// A single row in the agent navigator: the agent's name, plus a short
-/// description only when one exists (empty descriptions are not rendered, to
-/// keep the list calm and free of placeholder clutter).
+/// description only when there is real (non-placeholder) text — empty or
+/// dash-only descriptions are not rendered, keeping the list calm.
 struct AgentRowView: View {
     let agent: Agent
-
-    private var trimmedDescription: String {
-        agent.description.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(agent.name)
                 .font(.body)
 
-            if !trimmedDescription.isEmpty {
-                Text(trimmedDescription)
+            if let description = agent.description.sanitizedForDisplay {
+                Text(description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

@@ -18,18 +18,14 @@ struct AgentDetailView: View {
 
     @State private var didCopy = false
 
-    private var trimmedDescription: String {
-        agent.description.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             header
 
             actionBar
 
-            if !trimmedDescription.isEmpty {
-                purposeSection
+            if let purpose = agent.description.sanitizedForDisplay {
+                purposeSection(purpose)
             }
 
             instructionsSection
@@ -45,7 +41,7 @@ struct AgentDetailView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(agent.title.isEmpty ? agent.name : agent.title)
+            Text(agent.title.sanitizedForDisplay ?? agent.name)
                 .font(.title2.weight(.semibold))
 
             Text("\(agent.category) • \(agent.preferredAI)")
@@ -97,13 +93,13 @@ struct AgentDetailView: View {
 
     // MARK: - Purpose
 
-    private var purposeSection: some View {
+    private func purposeSection(_ purpose: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Purpose")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            Text(trimmedDescription)
+            Text(purpose)
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -117,11 +113,19 @@ struct AgentDetailView: View {
                 .font(.headline)
 
             ScrollView {
-                Text(agent.prompt)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
+                Group {
+                    if agent.prompt.sanitizedForDisplay != nil {
+                        Text(agent.prompt)
+                            .font(.body)
+                            .textSelection(.enabled)
+                    } else {
+                        Text("No instructions yet.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
