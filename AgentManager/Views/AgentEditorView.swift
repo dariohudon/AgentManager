@@ -13,17 +13,22 @@ enum AgentEditorMode: Identifiable {
     }
 }
 
-/// Form for creating or editing an agent, presented as a sheet.
+/// Inline form for creating or editing an agent.
+///
+/// This is presented inline inside the Agent Library surface (not as a `.sheet`
+/// or popover). Sheets attached to a `MenuBarExtra` popover are dismissed when
+/// focus moves between fields or when the popover resigns key, which made the
+/// editor disappear mid-edit. An inline editor stays put while the user tabs
+/// between fields and is dismissed only via Save/Cancel.
 struct AgentEditorView: View {
     let mode: AgentEditorMode
     let vault: AgentVault
-
-    @Environment(\.dismiss) private var dismiss
+    let onClose: () -> Void
 
     @State private var name = ""
     @State private var title = ""
-    @State private var description = ""
     @State private var category = Agent.defaultCategory
+    @State private var description = ""
     @State private var prompt = ""
 
     var body: some View {
@@ -33,8 +38,8 @@ struct AgentEditorView: View {
 
             Form {
                 TextField("Name", text: $name)
-                TextField("Title", text: $title)
                 TextField("Category", text: $category)
+                TextField("Title", text: $title)
                 TextField("Description", text: $description)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -43,7 +48,7 @@ struct AgentEditorView: View {
                         .foregroundStyle(.secondary)
                     TextEditor(text: $prompt)
                         .font(.body)
-                        .frame(minHeight: 140)
+                        .frame(minHeight: 120)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(.quaternary)
@@ -53,7 +58,7 @@ struct AgentEditorView: View {
             .formStyle(.columns)
 
             HStack {
-                Button("Cancel", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { onClose() }
                     .keyboardShortcut(.cancelAction)
 
                 Spacer()
@@ -64,7 +69,7 @@ struct AgentEditorView: View {
             }
         }
         .padding(16)
-        .frame(width: 460, height: 440)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onAppear(perform: populate)
     }
 
@@ -73,7 +78,7 @@ struct AgentEditorView: View {
         return false
     }
 
-    /// Name and prompt are required; title and description may be blank.
+    /// Name and prompt are required; category, title, and description may be blank.
     private var isValid: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -83,15 +88,15 @@ struct AgentEditorView: View {
         if case .edit(let agent) = mode {
             name = agent.name
             title = agent.title
-            description = agent.description
             category = agent.category
+            description = agent.description
             prompt = agent.prompt
         }
     }
 
     private func save() {
-        let resolvedCategory = category.trimmingCharacters(in: .whitespacesAndNewlines)
-        let finalCategory = resolvedCategory.isEmpty ? Agent.defaultCategory : resolvedCategory
+        let trimmedCategory = category.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalCategory = trimmedCategory.isEmpty ? Agent.defaultCategory : trimmedCategory
 
         switch mode {
         case .add:
@@ -112,14 +117,16 @@ struct AgentEditorView: View {
                 prompt: prompt
             )
         }
-        dismiss()
+        onClose()
     }
 }
 
 #Preview("Add") {
-    AgentEditorView(mode: .add, vault: AgentVault(agents: []))
+    AgentEditorView(mode: .add, vault: AgentVault(agents: []), onClose: {})
+        .frame(width: 460, height: 440)
 }
 
 #Preview("Edit") {
-    AgentEditorView(mode: .edit(SeedAgents.architect), vault: AgentVault(agents: SeedAgents.all))
+    AgentEditorView(mode: .edit(SeedAgents.architect), vault: AgentVault(agents: SeedAgents.all), onClose: {})
+        .frame(width: 460, height: 440)
 }

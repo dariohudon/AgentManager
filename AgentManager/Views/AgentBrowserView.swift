@@ -1,17 +1,41 @@
 import SwiftUI
 
-/// List/detail browser for the agent vault, sized for the menu bar window.
-/// Shows a sidebar of agents (name + short description) with an add control,
-/// and a detail pane for the selected agent with copy/edit/delete actions.
-/// Falls back to a simple empty state when there are no agents.
+/// List/detail browser for the agent library, sized for the menu bar window.
+///
+/// Add/edit and delete-confirmation are shown as **inline modes** that replace
+/// the browsing surface, rather than `.sheet`/`.confirmationDialog` modals.
+/// Modals attached to a `MenuBarExtra` popover get dismissed when focus moves
+/// or the popover resigns key, which made the editor vanish mid-edit; inline
+/// modes are stable from both the menu bar panel and the hotkey-opened window.
 struct AgentBrowserView: View {
     @Bindable var vault: AgentVault
 
     @State private var selectedAgentID: Agent.ID?
-    @State private var editorMode: AgentEditorMode?
-    @State private var agentPendingDeletion: Agent?
+    @State private var mode: Mode = .browse
+
+    /// What the surface is currently showing.
+    private enum Mode {
+        case browse
+        case editor(AgentEditorMode)
+        case confirmDelete(Agent)
+    }
 
     var body: some View {
+        switch mode {
+        case .browse:
+            browse
+        case .editor(let editorMode):
+            AgentEditorView(mode: editorMode, vault: vault) {
+                mode = .browse
+            }
+        case .confirmDelete(let agent):
+            deleteConfirmation(agent)
+        }
+    }
+
+    // MARK: - Browse
+
+    private var browse: some View {
         Group {
             if vault.agents.isEmpty {
                 emptyState
@@ -22,29 +46,14 @@ struct AgentBrowserView: View {
                     if let agent = selectedAgent {
                         AgentDetailView(
                             agent: agent,
-                            onEdit: { editorMode = .edit(agent) },
-                            onDelete: { agentPendingDeletion = agent }
+                            onEdit: { mode = .editor(.edit(agent)) },
+                            onDelete: { mode = .confirmDelete(agent) }
                         )
                     } else {
                         selectPrompt
                     }
                 }
             }
-        }
-        .sheet(item: $editorMode) { mode in
-            AgentEditorView(mode: mode, vault: vault)
-        }
-        .confirmationDialog(
-            "Delete this agent?",
-            isPresented: deletionDialogBinding,
-            presenting: agentPendingDeletion
-        ) { agent in
-            Button("Delete \(agent.name)", role: .destructive) {
-                delete(agent)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: { agent in
-            Text("\"\(agent.title)\" will be removed from your vault. This can't be undone.")
         }
         .onAppear {
             if selectedAgentID == nil {
@@ -71,7 +80,7 @@ struct AgentBrowserView: View {
 
             HStack {
                 Button("New Agent", systemImage: "plus") {
-                    editorMode = .add
+                    mode = .editor(.add)
                 }
                 Spacer()
             }
@@ -80,6 +89,33 @@ struct AgentBrowserView: View {
         }
         .frame(minWidth: 200)
     }
+
+    // MARK: - Delete confirmation (inline)
+
+    private func deleteConfirmation(_ agent: Agent) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "trash")
+                .font(.largeTitle)
+                .foregroundStyle(.red)
+
+            Text("Delete \"\(agent.title)\"?")
+                .font(.headline)
+
+            Text("This removes \(agent.name) from your library and can't be undone.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            HStack {
+                Button("Cancel", role: .cancel) { mode = .browse }
+                Button("Delete", role: .destructive) { confirmDelete(agent) }
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Helpers
 
     private var selectedAgent: Agent? {
         vault.agents.first { $0.id == selectedAgentID }
@@ -93,19 +129,12 @@ struct AgentBrowserView: View {
             .sorted { $0.category < $1.category }
     }
 
-    private var deletionDialogBinding: Binding<Bool> {
-        Binding(
-            get: { agentPendingDeletion != nil },
-            set: { if !$0 { agentPendingDeletion = nil } }
-        )
-    }
-
-    private func delete(_ agent: Agent) {
+    private func confirmDelete(_ agent: Agent) {
         vault.delete(id: agent.id)
         if selectedAgentID == agent.id {
             selectedAgentID = vault.agents.first?.id
         }
-        agentPendingDeletion = nil
+        mode = .browse
     }
 
     private var emptyState: some View {
@@ -117,12 +146,12 @@ struct AgentBrowserView: View {
             Text("No agents yet")
                 .font(.headline)
 
-            Text("Add an agent to start your vault.")
+            Text("Add an agent to start your library.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
             Button("New Agent", systemImage: "plus") {
-                editorMode = .add
+                mode = .editor(.add)
             }
             .padding(.top, 4)
         }
