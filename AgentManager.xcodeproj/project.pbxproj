@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		037A2B58B6880297BADCB45D /* AgentBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF3EA46B24324C3B1F2F5DC /* AgentBrowserView.swift */; };
-		0D9CBC6FA45F46FC6D326F75 /* AgentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDA189E57D3548C004ABB45 /* AgentProvider.swift */; };
+		2226A27ED509050740F4D7BA /* AgentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79206EAB67E62C165FBDB83C /* AgentStore.swift */; };
 		335E686C979A17B919A83FF0 /* AgentManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99BE75BE160BAD6527535C /* AgentManagerApp.swift */; };
 		408BBDED51EC85445E184089 /* AgentManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05591F149C2EB3942557A48 /* AgentManagerTests.swift */; };
 		6E004170BA45EF9849CC05AA /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281154C81C4C47E1CD0C3FBB /* AgentRowView.swift */; };
@@ -36,7 +36,7 @@
 		281154C81C4C47E1CD0C3FBB /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
 		3A99BE75BE160BAD6527535C /* AgentManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentManagerApp.swift; sourceTree = "<group>"; };
 		5567C2D793C1DBB07FEDB821 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		6BDA189E57D3548C004ABB45 /* AgentProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProvider.swift; sourceTree = "<group>"; };
+		79206EAB67E62C165FBDB83C /* AgentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentStore.swift; sourceTree = "<group>"; };
 		D55C97DDB7E84A4603D05DE9 /* AgentManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9F1588F5A346D4E227581C3 /* PromptPasteboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPasteboard.swift; sourceTree = "<group>"; };
 		DCD4A375FC35FDB968CBAB82 /* AgentManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgentManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,7 +79,7 @@
 		5EC3611C617928E9C2DA29BE /* Data */ = {
 			isa = PBXGroup;
 			children = (
-				6BDA189E57D3548C004ABB45 /* AgentProvider.swift */,
+				79206EAB67E62C165FBDB83C /* AgentStore.swift */,
 				27CE6B6594343DF57A4BFDF3 /* SeedAgents.swift */,
 			);
 			path = Data;
@@ -205,8 +205,8 @@
 				037A2B58B6880297BADCB45D /* AgentBrowserView.swift in Sources */,
 				A87A0E44B0A7608D0EA83C47 /* AgentDetailView.swift in Sources */,
 				335E686C979A17B919A83FF0 /* AgentManagerApp.swift in Sources */,
-				0D9CBC6FA45F46FC6D326F75 /* AgentProvider.swift in Sources */,
 				6E004170BA45EF9849CC05AA /* AgentRowView.swift in Sources */,
+				2226A27ED509050740F4D7BA /* AgentStore.swift in Sources */,
 				D9DDF243044E372E8256037C /* ContentView.swift in Sources */,
 				EBA8505DBFC159C2815FD20C /* PromptPasteboard.swift in Sources */,
 				E45BE87221A755F4D6B99CDC /* SeedAgents.swift in Sources */,

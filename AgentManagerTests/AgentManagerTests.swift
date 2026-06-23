@@ -46,8 +46,55 @@ final class AgentManagerTests: XCTestCase {
         XCTAssertEqual(decoded, agent)
     }
 
-    func testProviderReturnsSeedAgentsWhenNoLocalData() {
-        let provider = AgentProvider()
-        XCTAssertEqual(provider.loadAgents().map(\.name), SeedAgents.all.map(\.name))
+    // MARK: - Persistence (M01-S06)
+
+    /// A unique temporary store URL so tests never touch the real app data at
+    /// ~/Library/Application Support/AgentManager/agents.json.
+    private func makeTempStoreURL() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("AgentManagerTests-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("agents.json", isDirectory: false)
+    }
+
+    func testFirstRunWritesSeedWhenNoFileExists() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let store = AgentStore(storeURL: url)
+
+        XCTAssertFalse(store.hasLocalData)
+        let loaded = try store.load()
+
+        XCTAssertEqual(loaded, SeedAgents.all)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    func testExistingJSONLoadsSavedAgents() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let custom = [SeedAgents.reviewer, SeedAgents.architect]
+        try AgentStore(storeURL: url).save(custom)
+
+        // A fresh store at the same path simulates a later app launch.
+        let reopened = AgentStore(storeURL: url)
+        XCTAssertEqual(try reopened.load(), custom)
+    }
+
+    func testSaveRoundTrips() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let store = AgentStore(storeURL: url)
+
+        try store.save(SeedAgents.all)
+        XCTAssertEqual(try store.load(), SeedAgents.all)
+    }
+
+    func testLoadDoesNotReseedWhenFileExists() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let store = AgentStore(storeURL: url)
+        try store.save([SeedAgents.implementer])
+
+        // Data survives "restart" and is not overwritten by the seed.
+        XCTAssertEqual(try store.load(), [SeedAgents.implementer])
     }
 }

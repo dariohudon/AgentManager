@@ -8,7 +8,14 @@ import SwiftUI
 /// (M01-S05), durable persistence (M01-S06), and the global shortcut (M01-S07)
 /// are intentionally out of scope here.
 struct ContentView: View {
-    private let agents: [Agent] = AgentProvider().loadAgents()
+    private let agents: [Agent] = ContentView.loadAgents()
+
+    /// Loads agents from the local JSON store, falling back to the seed agents
+    /// if the store location can't be resolved or read.
+    private static func loadAgents() -> [Agent] {
+        guard let store = AgentStore() else { return SeedAgents.all }
+        return (try? store.load()) ?? SeedAgents.all
+    }
 
     var body: some View {
         VStack(spacing: 0) {

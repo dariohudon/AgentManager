@@ -112,17 +112,24 @@ boundaries may shift slightly as M01 is built, but the feature-oriented grouping
 
 ## 7. Local JSON Persistence Choice
 
-V1 persists the vault as a single local JSON file:
+V1 persists the vault as a single local JSON file (implemented in M01-S06 by
+`AgentStore`):
 
-- Location: under the app's Application Support directory
-  (e.g. `~/Library/Application Support/AgentManager/agents.json`).
-- Format: `Agent` / `AgentVault` are `Codable`; the store serializes to and from JSON.
+- Location: `~/Library/Application Support/AgentManager/agents.json`
+  (the app's Application Support directory). `AgentStore.defaultStoreURL`
+  is the single source of truth for this path.
+- Format: a JSON array of `Agent` (which is `Codable`), pretty-printed with
+  sorted keys and ISO-8601 dates.
+- First run: when no file exists, the seed agents are written to disk and
+  returned. Subsequent runs decode and return the saved agents, so changes
+  survive an app restart.
 - Rationale:
   - Local-first and dependency-free — no database engine, no backend.
   - Human-readable and git-friendly if the user chooses to track it.
   - Trivial to back up, inspect, or hand-edit.
-- Writes are atomic (write to a temp file, then replace) to avoid corrupting the vault
-  on partial writes.
+- Writes are atomic (`Data.write(options: .atomic)`) to avoid corrupting the
+  vault on partial writes. The store also exposes a `save([Agent])` function
+  that M01-S07 (Add/Edit/Delete) builds on.
 
 ## 8. M01 Card Sequence
 
@@ -139,10 +146,15 @@ Card order for the M01 milestone (mirrors BATON):
    action.
 6. **M01-S06 — Local JSON Persistence** — local JSON `AgentStore` (load/save, atomic
    writes).
-7. **M01-S07 — Global Keyboard Shortcut** — open the vault via a global shortcut and
+7. **M01-S07 — Add / Edit / Delete Agents** — create, edit, and delete agents,
+   persisting changes through `AgentStore.save`.
+8. **M01-S08 — Global Keyboard Shortcut** — open the vault via a global shortcut and
    copy the selected agent's prompt from the keyboard.
-8. **M01-S08 — Codex Review and M01 Lock** — final review and lock of the M01
+9. **M01-S09 — Codex Review and M01 Lock** — final review and lock of the M01
    milestone.
 
-This sequence mirrors the current BATON cards; later cards may be adjusted as M01
-progresses.
+Sequence note: Dario confirmed that add/edit/delete of agents/prompts is in scope for
+M01, added here as **M01-S07**, which shifts the global keyboard shortcut to
+**M01-S08** and the final review/lock to **M01-S09**. The BATON cards should be
+reconciled to match (the prior card set listed S07 as the keyboard shortcut and S08 as
+the review/lock).
