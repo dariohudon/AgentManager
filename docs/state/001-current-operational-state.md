@@ -27,4 +27,4 @@ main
 
 ## Immediate Next Step
 
-Create BATON project record manually, then create M01-S01 card.
+Create M01-S01 card in BATON: Project Charter & Scope Lock.
