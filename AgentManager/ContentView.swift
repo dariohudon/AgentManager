@@ -1,50 +1,30 @@
+import AppKit
 import SwiftUI
 
+/// The Agent Manager panel shown when the menu bar item is clicked.
+///
+/// M01-S02 establishes only the menu bar shell. The agent list, detail view,
+/// copy-prompt action, and local persistence arrive in later M01 cards, so this
+/// is intentionally a small placeholder with a working Quit control.
 struct ContentView: View {
     var body: some View {
-        NavigationSplitView {
-            List {
-                NavigationLink("Agents") {
-                    PlaceholderView(title: "Agents")
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Agent Manager")
+                .font(.headline)
 
-                NavigationLink("Prompts") {
-                    PlaceholderView(title: "Prompts")
-                }
-
-                NavigationLink("Workflows") {
-                    PlaceholderView(title: "Workflows")
-                }
-
-                NavigationLink("Handoffs") {
-                    PlaceholderView(title: "Handoffs")
-                }
-
-                NavigationLink("Settings") {
-                    PlaceholderView(title: "Settings")
-                }
-            }
-            .navigationTitle("Agent Manager")
-        } detail: {
-            PlaceholderView(title: "Agent Manager")
-        }
-    }
-}
-
-struct PlaceholderView: View {
-    let title: String
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(title)
-                .font(.largeTitle)
-                .fontWeight(.semibold)
-
-            Text("M01 native macOS foundation.")
+            Text("Your reusable AI agents will live here.")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
+
+            Divider()
+
+            Button("Quit Agent Manager") {
+                NSApplication.shared.terminate(nil)
+            }
+            .keyboardShortcut("q")
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
+        .padding(16)
+        .frame(width: 280, alignment: .leading)
     }
 }
 
