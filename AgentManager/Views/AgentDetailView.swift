@@ -1,13 +1,15 @@
 import SwiftUI
 
-/// Inspection view for the selected agent: a calm header (name + a single
-/// metadata line + optional purpose), a clear primary action, and the prompt
-/// as the focus of the page.
+/// Inspection view for the selected agent — a calm, native capability page.
 ///
-/// Visual hierarchy (M03-S03): **Copy Prompt** is the prominent primary action;
-/// Edit and Duplicate are quiet secondary icon buttons; Delete is tucked into a
-/// "more" menu so it never competes with the primary/secondary actions. Copy
-/// Prompt still copies only `agent.prompt`.
+/// Layout (M03-S05): a clear name header with a compact `Category • Preferred AI`
+/// metadata line; a compact toolbar (prominent Copy Prompt + secondary Edit /
+/// Duplicate, with Delete tucked into a "more" menu); an optional **Purpose**
+/// section (the agent's description, shown only when present); and the
+/// **Instructions** area as the star — a prominent, scrollable card that fills
+/// the remaining space.
+///
+/// Copy Prompt still copies only `agent.prompt`.
 struct AgentDetailView: View {
     let agent: Agent
     let onEdit: () -> Void
@@ -21,26 +23,19 @@ struct AgentDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                header
+        VStack(alignment: .leading, spacing: 14) {
+            header
 
-                actionBar
+            actionBar
 
-                Divider()
-
-                Text("Instructions")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-
-                Text(agent.prompt)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            if !trimmedDescription.isEmpty {
+                purposeSection
             }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            instructionsSection
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onChange(of: agent.id) {
             didCopy = false
         }
@@ -49,24 +44,17 @@ struct AgentDetailView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(agent.title.isEmpty ? agent.name : agent.title)
                 .font(.title2.weight(.semibold))
 
             Text("\(agent.category) • \(agent.preferredAI)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-
-            if !trimmedDescription.isEmpty {
-                Text(trimmedDescription)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 2)
-            }
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Toolbar
 
     private var actionBar: some View {
         HStack(spacing: 8) {
@@ -99,6 +87,40 @@ struct AgentDetailView: View {
         }
     }
 
+    // MARK: - Purpose
+
+    private var purposeSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Purpose")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text(trimmedDescription)
+                .font(.subheadline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    // MARK: - Instructions (the star)
+
+    private var instructionsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Instructions")
+                .font(.headline)
+
+            ScrollView {
+                Text(agent.prompt)
+                    .font(.body)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
     private func copyPrompt() {
         PromptPasteboard.copy(agent)
         withAnimation { didCopy = true }
@@ -111,5 +133,5 @@ struct AgentDetailView: View {
 
 #Preview {
     AgentDetailView(agent: SeedAgents.implementer, onEdit: {}, onDuplicate: {}, onDelete: {})
-        .frame(width: 360, height: 400)
+        .frame(width: 360, height: 420)
 }
