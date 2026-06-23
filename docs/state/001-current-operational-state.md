@@ -93,6 +93,7 @@ Agent Library → Category → Agent → Instructions (capability-first, not pro
 ## M03 Direction (direction-locked, not yet implemented)
 
 - Native macOS Redesign: move from a CRUD-over-JSON feel to a native capability library.
+- Primary user flow: Browse agents → Select agent → Run/copy agent.
 - Separate Browse → Inspect → Edit; inspect/read is default, edit is intentional.
 - Primary action becomes Run-oriented (still copy-backed) and prepares for Open-in-AI.
 - Destructive actions de-emphasized; Settings stays app-level only; the shared Agent

@@ -5,6 +5,17 @@
 > locked M01 ([m01-menu-bar-agent-vault.md](m01-menu-bar-agent-vault.md)) and M02
 > ([m02-agent-library-polish-metadata.md](m02-agent-library-polish-metadata.md)).
 
+## Primary user flow
+
+**Browse agents → Select agent → Run/copy agent.**
+
+Browsing the Agent Library is the resting state. Selecting an agent opens it in
+read/inspect mode (not a form). The primary action on a selected agent is Run/copy
+(Copy Prompt today, Run-oriented going forward). Editing is a separate, intentional
+mode — never the default. This single flow is identical in both the `MenuBarExtra`
+surface and the standalone hotkey `NSWindow`, because they share one Agent Library
+surface.
+
 ## 1. Current assessment
 
 - **Architecture: strong.** Clean model/store/vault layers; one reusable Agent Library
