@@ -73,13 +73,16 @@ CRUD tool** — it treats every agent as an always-editable database record.
 - Compact top-right actions: a **primary Run/Copy** action and **Edit**.
 - **Delete** hidden / de-emphasized behind a secondary "more" affordance.
 
-## 5. Future product direction (not implemented in M03 direction-lock)
+## 5. Future product direction
 
-- Copy Prompt is the current behavior and stays until real execution exists.
+- The primary action is now labeled **Run / Copy** (M03-S06) to bridge toward a future
+  Run Agent model. **Behavior is unchanged**: it still copies only `agent.prompt` to the
+  clipboard. Helper text under the action states this explicitly and notes that the
+  agent's Preferred AI will guide future run/open actions — so the label never misleads.
 - The primary action's UI should prepare for **Open in Claude / ChatGPT / Gemini /
   Perplexity** later (informed by the agent's Preferred AI).
 - This can eventually become **Run Agent**.
-- No browser/API execution, no external integrations in M03 — direction only.
+- No browser/API execution, no external integrations in M03 — language/direction only.
 
 ## 6. Future Agent page direction
 

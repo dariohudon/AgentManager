@@ -95,7 +95,8 @@ Agent Library → Category → Agent → Instructions (capability-first, not pro
 - Native macOS Redesign: move from a CRUD-over-JSON feel to a native capability library.
 - Primary user flow: Browse agents → Select agent → Run/copy agent.
 - Separate Browse → Inspect → Edit; inspect/read is default, edit is intentional.
-- Primary action becomes Run-oriented (still copy-backed) and prepares for Open-in-AI.
+- Primary action is now labeled "Run / Copy" (M03-S06), still copy-backed (copies only
+  agent.prompt) with helper text; prepares for Open-in-AI guided by Preferred AI.
 - Destructive actions de-emphasized; Settings stays app-level only; the shared Agent
   Library surface stays reusable across the menu bar and hotkey window.
 - Full direction + diagnosis + layout + sprint plan:

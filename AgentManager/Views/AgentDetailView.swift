@@ -57,33 +57,41 @@ struct AgentDetailView: View {
     // MARK: - Toolbar
 
     private var actionBar: some View {
-        HStack(spacing: 8) {
-            Button(action: copyPrompt) {
-                Label(didCopy ? "Copied" : "Copy Prompt",
-                      systemImage: didCopy ? "checkmark" : "doc.on.doc")
-            }
-            .buttonStyle(.borderedProminent)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Button(action: copyPrompt) {
+                    Label(didCopy ? "Copied" : "Run / Copy",
+                          systemImage: didCopy ? "checkmark" : "doc.on.doc")
+                }
+                .buttonStyle(.borderedProminent)
+                .help("Copies the instructions to the clipboard. Preferred AI will guide future run/open actions.")
 
-            Spacer()
+                Spacer()
 
-            Button(action: onEdit) {
-                Image(systemName: "pencil")
-            }
-            .help("Edit agent")
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                }
+                .help("Edit agent")
 
-            Button(action: onDuplicate) {
-                Image(systemName: "plus.square.on.square")
-            }
-            .help("Duplicate agent")
+                Button(action: onDuplicate) {
+                    Image(systemName: "plus.square.on.square")
+                }
+                .help("Duplicate agent")
 
-            Menu {
-                Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
-            } label: {
-                Image(systemName: "ellipsis.circle")
+                Menu {
+                    Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .help("More actions")
             }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .help("More actions")
+
+            // Honest about today's behavior while signalling the future direction.
+            Text("Copies the instructions for now. Preferred AI (\(agent.preferredAI)) will guide future run/open actions.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
