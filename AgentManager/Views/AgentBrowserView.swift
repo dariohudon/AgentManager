@@ -13,6 +13,10 @@ struct AgentBrowserView: View {
     @State private var selectedAgentID: Agent.ID?
     @State private var mode: Mode = .browse
 
+    /// Categories whose section is expanded. Empty by default, so every category
+    /// starts collapsed each time the library opens. Not persisted across launches.
+    @State private var expandedCategories: Set<String> = []
+
     /// What the surface is currently showing.
     private enum Mode {
         case browse
@@ -55,22 +59,35 @@ struct AgentBrowserView: View {
                 }
             }
         }
-        .onAppear {
-            if selectedAgentID == nil {
-                selectedAgentID = vault.agents.first?.id
+    }
+
+    /// Two-way binding for a category's expanded state, backed by
+    /// `expandedCategories`. Categories are collapsed unless present in the set.
+    private func expansionBinding(for category: String) -> Binding<Bool> {
+        Binding(
+            get: { expandedCategories.contains(category) },
+            set: { isExpanded in
+                if isExpanded {
+                    expandedCategories.insert(category)
+                } else {
+                    expandedCategories.remove(category)
+                }
             }
-        }
+        )
     }
 
     private var sidebar: some View {
         VStack(spacing: 0) {
             List(selection: $selectedAgentID) {
                 ForEach(groupedByCategory, id: \.category) { group in
-                    Section(group.category) {
+                    DisclosureGroup(isExpanded: expansionBinding(for: group.category)) {
                         ForEach(group.agents) { agent in
                             AgentRowView(agent: agent)
                                 .tag(agent.id)
                         }
+                    } label: {
+                        Text(group.category)
+                            .font(.title3.weight(.bold))
                     }
                 }
             }
