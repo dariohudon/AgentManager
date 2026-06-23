@@ -22,6 +22,7 @@ struct AgentBrowserView: View {
         case browse
         case editor(AgentEditorMode)
         case confirmDelete(Agent)
+        case settings
     }
 
     var body: some View {
@@ -34,6 +35,10 @@ struct AgentBrowserView: View {
             }
         case .confirmDelete(let agent):
             deleteConfirmation(agent)
+        case .settings:
+            SettingsView(vault: vault) {
+                mode = .browse
+            }
         }
     }
 
@@ -100,6 +105,13 @@ struct AgentBrowserView: View {
                     mode = .editor(.add)
                 }
                 Spacer()
+                Button {
+                    mode = .settings
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .buttonStyle(.borderless)
+                .help("Settings")
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -171,6 +183,12 @@ struct AgentBrowserView: View {
                 mode = .editor(.add)
             }
             .padding(.top, 4)
+
+            Button("Settings", systemImage: "gearshape") {
+                mode = .settings
+            }
+            .buttonStyle(.borderless)
+            .font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()

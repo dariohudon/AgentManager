@@ -19,6 +19,7 @@
 		A29E60EA0248E710548032CC /* OptionsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBDD1F8ED76CE99FFDE36EBF /* OptionsStore.swift */; };
 		A87A0E44B0A7608D0EA83C47 /* AgentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0F9C3E94B6AD0DB77B93EF /* AgentDetailView.swift */; };
 		A9FB21C46C22742650EAE9A5 /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79B6D99486C2FAD23858E05 /* Agent.swift */; };
+		B8FB16FD6D37B59622D2E2D1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E360E36573F4F820B8A1AF4 /* SettingsView.swift */; };
 		D9DDF243044E372E8256037C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5567C2D793C1DBB07FEDB821 /* ContentView.swift */; };
 		DF4099DAE70861895FB6BC06 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5E81BAE97249104BBC7B0B /* GlobalHotKey.swift */; };
 		E45BE87221A755F4D6B99CDC /* SeedAgents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CE6B6594343DF57A4BFDF3 /* SeedAgents.swift */; };
@@ -36,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0E360E36573F4F820B8A1AF4 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1AA6232EAA2065C21D6C9D9B /* LibraryOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryOptions.swift; sourceTree = "<group>"; };
 		1E0F9C3E94B6AD0DB77B93EF /* AgentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDetailView.swift; sourceTree = "<group>"; };
 		1FF3EA46B24324C3B1F2F5DC /* AgentBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentBrowserView.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 				1E0F9C3E94B6AD0DB77B93EF /* AgentDetailView.swift */,
 				24DCA6A9F6EE6BFA83AAE6AA /* AgentEditorView.swift */,
 				281154C81C4C47E1CD0C3FBB /* AgentRowView.swift */,
+				0E360E36573F4F820B8A1AF4 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -234,6 +237,7 @@
 				A29E60EA0248E710548032CC /* OptionsStore.swift in Sources */,
 				EBA8505DBFC159C2815FD20C /* PromptPasteboard.swift in Sources */,
 				E45BE87221A755F4D6B99CDC /* SeedAgents.swift in Sources */,
+				B8FB16FD6D37B59622D2E2D1 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
