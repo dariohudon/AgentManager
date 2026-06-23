@@ -1,18 +1,27 @@
 import SwiftUI
 
 /// Detail for the selected agent: title, description, and the full prompt.
-/// The prompt sits in a scrollable region so long text stays readable, and a
-/// Copy Prompt action copies only the prompt to the clipboard.
+/// The prompt sits in a scrollable region so long text stays readable. Actions
+/// let the user copy the prompt, edit the agent, or delete it.
 struct AgentDetailView: View {
     let agent: Agent
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     @State private var didCopy = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text(agent.title)
-                    .font(.title2.weight(.semibold))
+                HStack(alignment: .firstTextBaseline) {
+                    Text(agent.title)
+                        .font(.title2.weight(.semibold))
+
+                    Spacer()
+
+                    Button("Edit", systemImage: "pencil", action: onEdit)
+                    Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
+                }
 
                 Text(agent.description)
                     .font(.subheadline)
@@ -65,6 +74,6 @@ struct AgentDetailView: View {
 }
 
 #Preview {
-    AgentDetailView(agent: SeedAgents.implementer)
-        .frame(width: 320, height: 360)
+    AgentDetailView(agent: SeedAgents.implementer, onEdit: {}, onDelete: {})
+        .frame(width: 340, height: 360)
 }

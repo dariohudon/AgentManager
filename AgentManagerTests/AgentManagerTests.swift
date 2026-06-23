@@ -97,4 +97,70 @@ final class AgentManagerTests: XCTestCase {
         // Data survives "restart" and is not overwritten by the seed.
         XCTAssertEqual(try store.load(), [SeedAgents.implementer])
     }
+
+    // MARK: - Add / Edit / Delete (M01-S07)
+
+    private static let fixedDate = Date(timeIntervalSince1970: 2_000_000_000)
+
+    func testAddPersistsNewAgentAndSurvivesRestart() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url))
+        let before = vault.agents.count
+
+        let added = vault.add(
+            name: "scout",
+            title: "Scout",
+            description: "Finds things",
+            prompt: "You are the Scout.",
+            now: Self.fixedDate
+        )
+
+        XCTAssertEqual(vault.agents.count, before + 1)
+        XCTAssertEqual(added.createdAt, Self.fixedDate)
+        XCTAssertEqual(added.updatedAt, Self.fixedDate)
+
+        // Reload from disk = simulated restart.
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertEqual(reloaded.count, before + 1)
+        XCTAssertTrue(reloaded.contains { $0.id == added.id && $0.prompt == "You are the Scout." })
+    }
+
+    func testEditUpdatesFieldsBumpsUpdatedAtAndPreservesCreatedAt() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url))
+        let original = vault.agents[0]
+
+        vault.update(
+            id: original.id,
+            name: "renamed",
+            title: "Renamed",
+            description: "new desc",
+            prompt: "new prompt",
+            now: Self.fixedDate
+        )
+
+        let edited = try XCTUnwrap(vault.agents.first { $0.id == original.id })
+        XCTAssertEqual(edited.prompt, "new prompt")
+        XCTAssertEqual(edited.createdAt, original.createdAt)
+        XCTAssertEqual(edited.updatedAt, Self.fixedDate)
+
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertEqual(reloaded.first { $0.id == original.id }?.prompt, "new prompt")
+    }
+
+    func testDeleteRemovesAgentAndStaysDeletedAfterRestart() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url))
+        let victim = vault.agents[0]
+
+        vault.delete(id: victim.id)
+
+        XCTAssertFalse(vault.agents.contains { $0.id == victim.id })
+
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertFalse(reloaded.contains { $0.id == victim.id })
+    }
 }

@@ -3,24 +3,17 @@ import SwiftUI
 
 /// The Agent Manager panel shown when the menu bar item is clicked.
 ///
-/// Hosts the agent browser (list/detail) over the seed agents from the
-/// M01-S03 provider, with a Quit control in the footer. Copy-to-clipboard
-/// (M01-S05), durable persistence (M01-S06), and the global shortcut (M01-S07)
-/// are intentionally out of scope here.
+/// Hosts the agent browser (list/detail) over an `AgentVault` backed by local
+/// JSON persistence, with a Quit control in the footer. Add/edit/delete and
+/// Copy Prompt live in the browser/detail views. The global summon shortcut is
+/// M01-S08.
 struct ContentView: View {
-    private let agents: [Agent] = ContentView.loadAgents()
-
-    /// Loads agents from the local JSON store, falling back to the seed agents
-    /// if the store location can't be resolved or read.
-    private static func loadAgents() -> [Agent] {
-        guard let store = AgentStore() else { return SeedAgents.all }
-        return (try? store.load()) ?? SeedAgents.all
-    }
+    @State private var vault = AgentVault()
 
     var body: some View {
         VStack(spacing: 0) {
-            AgentBrowserView(agents: agents)
-                .frame(width: 520, height: 360)
+            AgentBrowserView(vault: vault)
+                .frame(width: 560, height: 420)
 
             Divider()
 
