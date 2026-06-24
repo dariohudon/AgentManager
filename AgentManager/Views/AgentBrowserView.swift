@@ -93,15 +93,27 @@ struct AgentBrowserView: View {
 
             List(selection: $selectedAgentID) {
                 ForEach(groupedByCategory, id: \.category) { group in
-                    DisclosureGroup(isExpanded: expansionBinding(for: group.category)) {
-                        ForEach(group.agents) { agent in
-                            AgentRowView(agent: agent)
-                                .tag(agent.id)
+                    if isSearching {
+                        // While searching, render plain sections (no disclosure
+                        // expand/collapse animation), which renders filtered
+                        // results cleanly without overlap/bleed.
+                        Section {
+                            ForEach(group.agents) { agent in
+                                AgentRowView(agent: agent)
+                                    .tag(agent.id)
+                            }
+                        } header: {
+                            categoryLabel(group.category)
                         }
-                    } label: {
-                        // Bold, sized to match the Settings category list rows (.body).
-                        Text(group.category)
-                            .font(.body.weight(.bold))
+                    } else {
+                        DisclosureGroup(isExpanded: expansionBinding(for: group.category)) {
+                            ForEach(group.agents) { agent in
+                                AgentRowView(agent: agent)
+                                    .tag(agent.id)
+                            }
+                        } label: {
+                            categoryLabel(group.category)
+                        }
                     }
                 }
             }
@@ -159,12 +171,20 @@ struct AgentBrowserView: View {
         .padding(.vertical, 6)
     }
 
-    /// Two-way binding for a category's expanded state. Categories are collapsed
-    /// unless present in `expandedCategories` — but while searching, every
-    /// matching category is expanded so results are visible.
+    /// Category header label, sized to match the Settings category list rows
+    /// (.body) and bold for navigation hierarchy. Shared by the browsing
+    /// DisclosureGroup and the search-result Section.
+    private func categoryLabel(_ category: String) -> some View {
+        Text(category)
+            .font(.body.weight(.bold))
+    }
+
+    /// Two-way binding for a category's expanded state (browsing only — search
+    /// uses plain sections). Categories are collapsed unless present in
+    /// `expandedCategories`.
     private func expansionBinding(for category: String) -> Binding<Bool> {
         Binding(
-            get: { isSearching || expandedCategories.contains(category) },
+            get: { expandedCategories.contains(category) },
             set: { isExpanded in
                 if isExpanded {
                     expandedCategories.insert(category)
