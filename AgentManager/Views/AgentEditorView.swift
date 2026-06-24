@@ -19,13 +19,19 @@ enum AgentEditorMode: Identifiable {
 /// is stable inside the `MenuBarExtra` popover and the hotkey window. Category
 /// and Preferred AI are chosen from dropdowns; managing the available options
 /// lives in Settings (app-level), not here.
+///
+/// Draft edits live in `@State` and are committed only on Save — so the user
+/// can leave Agent Manager to copy text and return (in the standalone hotkey
+/// window, which persists across app switches) without losing in-progress
+/// edits; Cancel intentionally discards them. There is no editable Title field:
+/// `Name` is the single identity field, and `title` is synced from `name` on
+/// save (the stored model keeps `title` for compatibility).
 struct AgentEditorView: View {
     let mode: AgentEditorMode
     let vault: AgentVault
     let onClose: () -> Void
 
     @State private var name = ""
-    @State private var title = ""
     @State private var category = Agent.defaultCategory
     @State private var preferredAI = Agent.defaultPreferredAI
     @State private var purpose = ""
@@ -55,7 +61,6 @@ struct AgentEditorView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                TextField("Title", text: $title)
                 TextField("Purpose", text: $purpose)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -117,7 +122,6 @@ struct AgentEditorView: View {
     private func populate() {
         if case .edit(let agent) = mode {
             name = agent.name
-            title = agent.title
             category = agent.category
             preferredAI = agent.preferredAI
             purpose = agent.description
@@ -130,12 +134,15 @@ struct AgentEditorView: View {
         let finalCategory = trimmedCategory.isEmpty ? Agent.defaultCategory : trimmedCategory
         let trimmedAI = preferredAI.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalAI = trimmedAI.isEmpty ? Agent.defaultPreferredAI : trimmedAI
+        // Title is no longer user-editable; keep the stored `title` in sync with
+        // `name` so the model stays compatible without a redundant field.
+        let syncedTitle = name
 
         switch mode {
         case .add:
             vault.add(
                 name: name,
-                title: title,
+                title: syncedTitle,
                 description: purpose,
                 category: finalCategory,
                 preferredAI: finalAI,
@@ -145,7 +152,7 @@ struct AgentEditorView: View {
             vault.update(
                 id: agent.id,
                 name: name,
-                title: title,
+                title: syncedTitle,
                 description: purpose,
                 category: finalCategory,
                 preferredAI: finalAI,

@@ -6,7 +6,13 @@ import SwiftUI
 ///
 /// `MenuBarExtra` popovers can't be opened programmatically, so the global
 /// hot key brings up this window instead. The window is created lazily and
-/// reused; closing it just hides it (the app keeps running in the menu bar).
+/// **reused** — closing it just hides it (the app keeps running in the menu
+/// bar). Reuse is what makes editing reliable: the hosted SwiftUI view (and its
+/// in-progress editor `@State` draft) is created once and survives the user
+/// switching to another app to copy text and back. The window also does not
+/// hide when the app deactivates, so it stays visible for that copy/paste flow.
+/// This is the reliable editing surface; the menu bar popover dismisses on
+/// focus loss, which is native behavior we don't fight.
 final class AgentManagerWindowController {
     private let vault: AgentVault
     private var window: NSWindow?
@@ -15,7 +21,8 @@ final class AgentManagerWindowController {
         self.vault = vault
     }
 
-    /// Brings the Agent Library window forward, creating it on first use.
+    /// Brings the Agent Library window forward, creating it on first use and
+    /// reusing it thereafter (so in-progress edits are never torn down).
     func showWindow() {
         if window == nil {
             let hosting = NSHostingController(rootView: ContentView(vault: vault))
@@ -23,6 +30,10 @@ final class AgentManagerWindowController {
             window.title = "Agent Manager"
             window.styleMask = [.titled, .closable, .miniaturizable]
             window.isReleasedWhenClosed = false
+            // Stay visible when the user switches to another app to copy/paste
+            // while editing, so unsaved draft edits are never lost to focus
+            // changes.
+            window.hidesOnDeactivate = false
             window.center()
             self.window = window
         }
