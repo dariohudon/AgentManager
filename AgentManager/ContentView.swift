@@ -14,7 +14,9 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             AgentBrowserView(vault: vault)
-                .frame(width: 560, height: 420)
+                // Wider surface (was 560): ~+20pt for the sidebar and ~+60pt
+                // for the detail side, giving the inspector more breathing room.
+                .frame(width: 640, height: 420)
 
             Divider()
 

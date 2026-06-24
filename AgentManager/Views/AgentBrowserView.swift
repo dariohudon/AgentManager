@@ -125,7 +125,7 @@ struct AgentBrowserView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
         }
-        .frame(minWidth: 200)
+        .frame(minWidth: 220)
     }
 
     /// Two-way binding for a category's expanded state, backed by
