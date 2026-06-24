@@ -31,10 +31,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var windowController = AgentManagerWindowController(vault: vault)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Control + Option + Space opens the Agent Library window from anywhere
-        // while Agent Manager is running.
+        // Control + Option + Space toggles the Agent Library window from
+        // anywhere: brings it forward when hidden, orders it away when it is
+        // already up front.
         hotKey = GlobalHotKey.controlOptionSpace { [weak self] in
-            self?.showLibrary()
+            self?.windowController.toggle()
         }
         if hotKey == nil {
             NSLog(
@@ -43,10 +44,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     + "(e.g. input-source switching) or another app."
             )
         }
-    }
-
-    private func showLibrary() {
-        NSApp.activate(ignoringOtherApps: true)
-        windowController.showWindow()
     }
 }

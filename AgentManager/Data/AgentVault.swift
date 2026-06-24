@@ -69,6 +69,53 @@ final class AgentVault {
         persistOptions()
     }
 
+    /// Renames a category: reassigns every agent using `old` to `new` (immutable
+    /// replace, bumps updatedAt), updates the custom options list, and persists.
+    /// No-op if either name is blank or unchanged. Existing agents/options are
+    /// never corrupted — only the category string changes.
+    func renameCategory(_ old: String, to newName: String, now: Date = Date()) {
+        let trimmedNew = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !old.isEmpty, !trimmedNew.isEmpty, old != trimmedNew else { return }
+
+        for index in agents.indices where agents[index].category == old {
+            let agent = agents[index]
+            agents[index] = Agent(
+                id: agent.id, name: agent.name, title: agent.title,
+                description: agent.description, category: trimmedNew,
+                preferredAI: agent.preferredAI, prompt: agent.prompt,
+                createdAt: agent.createdAt, updatedAt: now
+            )
+        }
+        options.categories.removeAll { $0 == old }
+        if !categoryChoices.contains(trimmedNew) {
+            options.categories.append(trimmedNew)
+        }
+        persist()
+        persistOptions()
+    }
+
+    /// Deletes a category: reassigns any agents using it to the default
+    /// ("General"), removes it from custom options, and persists. The default
+    /// category cannot be deleted. Returns false if the deletion was blocked.
+    @discardableResult
+    func deleteCategory(_ category: String, now: Date = Date()) -> Bool {
+        guard !category.isEmpty, category != Agent.defaultCategory else { return false }
+
+        for index in agents.indices where agents[index].category == category {
+            let agent = agents[index]
+            agents[index] = Agent(
+                id: agent.id, name: agent.name, title: agent.title,
+                description: agent.description, category: Agent.defaultCategory,
+                preferredAI: agent.preferredAI, prompt: agent.prompt,
+                createdAt: agent.createdAt, updatedAt: now
+            )
+        }
+        options.categories.removeAll { $0 == category }
+        persist()
+        persistOptions()
+        return true
+    }
+
     /// Adds a custom Preferred AI option (if non-empty and new) and persists.
     func addPreferredAIOption(_ name: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -444,6 +444,47 @@ final class AgentManagerTests: XCTestCase {
         }
     }
 
+    // MARK: - Category rename / delete (M06-S02)
+
+    func testRenameCategoryReassignsAgentsAndPersists() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
+        // Seeds: architect → Strategy.
+        vault.renameCategory("Strategy", to: "Planning", now: Self.fixedDate)
+
+        XCTAssertFalse(vault.agents.contains { $0.category == "Strategy" })
+        XCTAssertEqual(vault.agents.first { $0.name == "architect" }?.category, "Planning")
+        // Other fields preserved.
+        XCTAssertEqual(vault.agents.first { $0.name == "architect" }?.prompt, SeedAgents.architect.prompt)
+
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertEqual(reloaded.first { $0.name == "architect" }?.category, "Planning")
+    }
+
+    func testDeleteCategoryReassignsAgentsToGeneralAndPersists() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
+
+        let deleted = vault.deleteCategory("Operations", now: Self.fixedDate)
+        XCTAssertTrue(deleted)
+        XCTAssertFalse(vault.agents.contains { $0.category == "Operations" })
+        // implementer was Operations → now General.
+        XCTAssertEqual(vault.agents.first { $0.name == "implementer" }?.category, Agent.defaultCategory)
+
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertEqual(reloaded.first { $0.name == "implementer" }?.category, Agent.defaultCategory)
+    }
+
+    func testDeleteDefaultCategoryIsBlocked() {
+        let vault = AgentVault(agents: SeedAgents.all, optionsStore: nil)
+        let deleted = vault.deleteCategory(Agent.defaultCategory)
+        XCTAssertFalse(deleted)
+        // No agent was forced off its real category.
+        XCTAssertEqual(vault.agents.first { $0.name == "architect" }?.category, "Strategy")
+    }
+
     func testApplyImportAddsAndUpdatesAndPersists() throws {
         let url = makeTempStoreURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }

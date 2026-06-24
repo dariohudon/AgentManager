@@ -22,7 +22,8 @@ final class AgentManagerWindowController {
     }
 
     /// Brings the Agent Library window forward, creating it on first use and
-    /// reusing it thereafter (so in-progress edits are never torn down).
+    /// reusing it thereafter (so in-progress edits are never torn down), and
+    /// activates the app.
     func showWindow() {
         if window == nil {
             let hosting = NSHostingController(rootView: ContentView(vault: vault))
@@ -37,6 +38,19 @@ final class AgentManagerWindowController {
             window.center()
             self.window = window
         }
+        NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
+    }
+
+    /// Global-shortcut behavior: if the window is up front (visible and key),
+    /// order it away; otherwise bring it forward. Hiding via `orderOut` keeps
+    /// the reused window (and its in-progress editor state) alive, so toggling
+    /// away and back does not break the edit workflow.
+    func toggle() {
+        if let window, window.isVisible, window.isKeyWindow {
+            window.orderOut(nil)
+        } else {
+            showWindow()
+        }
     }
 }

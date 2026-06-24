@@ -2,19 +2,23 @@ import AppKit
 import SwiftUI
 
 /// Inline settings panel for app-level reusable options, Agent Pack
-/// import/export, and app info.
+/// import/export, app info, and Quit.
 ///
 /// Presented as an inline mode inside the Agent Library surface (not a
 /// `.sheet`/popover), so it is stable in both the `MenuBarExtra` popover and
-/// the hotkey window. Scope is app-level: shared dropdown options, the
-/// import/export exchange surface, and storage/shortcut info. Per-agent content
-/// lives in the agent editor/detail, never here.
+/// the hotkey window. Scope is app-level: shared dropdown options (with
+/// rename/delete), the import/export exchange surface, storage/shortcut info,
+/// and Quit. Per-agent content lives in the agent editor/detail, never here.
 struct SettingsView: View {
     let vault: AgentVault
     let onClose: () -> Void
 
     @State private var newCategory = ""
     @State private var newPreferredAI = ""
+
+    // Category rename state.
+    @State private var renamingCategory: String?
+    @State private var renameText = ""
 
     // Agent Pack import/export state.
     @State private var importText = ""
@@ -43,7 +47,7 @@ struct SettingsView: View {
             Form {
                 Section("Categories") {
                     ForEach(vault.categoryChoices, id: \.self) { category in
-                        Text(category)
+                        categoryRow(category)
                     }
                     addRow(placeholder: "Add category", text: $newCategory) {
                         vault.addCategoryOption(newCategory)
@@ -67,13 +71,65 @@ struct SettingsView: View {
                     LabeledContent("Agents", value: Self.agentsPath)
                     LabeledContent("Options", value: Self.optionsPath)
                     LabeledContent("Shortcut", value: Self.shortcut)
-                    Text("The shortcut opens a standalone window because the menu bar popover can't be opened programmatically.")
+                    Text("The shortcut opens the window when hidden and orders it away when it's up front. It uses a standalone window because the menu bar popover can't be opened programmatically.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                Section {
+                    Button("Quit Agent Manager") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                    .keyboardShortcut("q")
                 }
             }
             .formStyle(.grouped)
         }
+    }
+
+    // MARK: - Categories
+
+    @ViewBuilder
+    private func categoryRow(_ category: String) -> some View {
+        if renamingCategory == category {
+            HStack {
+                TextField("Rename category", text: $renameText)
+                Button("Save") { commitRename(from: category) }
+                    .disabled(renameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button("Cancel", role: .cancel) { cancelRename() }
+            }
+        } else {
+            HStack {
+                Text(category)
+                Spacer()
+                Menu {
+                    Button("Rename…") { startRename(category) }
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        vault.deleteCategory(category)
+                    }
+                    .disabled(category == Agent.defaultCategory)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+            }
+        }
+    }
+
+    private func startRename(_ category: String) {
+        renamingCategory = category
+        renameText = category
+    }
+
+    private func commitRename(from old: String) {
+        vault.renameCategory(old, to: renameText)
+        cancelRename()
+    }
+
+    private func cancelRename() {
+        renamingCategory = nil
+        renameText = ""
     }
 
     // MARK: - Agent Packs
@@ -91,16 +147,19 @@ struct SettingsView: View {
                 }
             }
 
-            // Import: paste → preview → apply
+            // Import: Preview/results sit ABOVE the JSON field so the user
+            // doesn't need to scroll past the text editor after pasting.
             VStack(alignment: .leading, spacing: 6) {
-                Text("Import: paste Agent Pack JSON")
+                Text("Import Agent Pack JSON")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
 
-                TextEditor(text: $importText)
-                    .font(.system(.caption, design: .monospaced))
-                    .frame(minHeight: 80)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                if let plan = importPlan {
+                    importPreview(plan)
+                } else {
+                    Button("Preview Import", action: previewImport)
+                        .disabled(importText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
 
                 if let importError {
                     Text(importError)
@@ -114,12 +173,10 @@ struct SettingsView: View {
                         .foregroundStyle(.green)
                 }
 
-                if let plan = importPlan {
-                    importPreview(plan)
-                } else {
-                    Button("Preview Import", action: previewImport)
-                        .disabled(importText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
+                TextEditor(text: $importText)
+                    .font(.system(.caption, design: .monospaced))
+                    .frame(minHeight: 80)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
             }
         }
     }
