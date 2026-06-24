@@ -161,6 +161,22 @@ final class AgentVault {
         persist()
     }
 
+    // MARK: - Agent Pack import
+
+    /// Applies a planned Agent Pack import: appends additions and replaces
+    /// matched agents with their updates, then persists once. Unchanged entries
+    /// and errors in the plan are ignored (nothing partial or bad is written).
+    func applyImport(_ plan: AgentImportPlan) {
+        guard plan.hasApplicableChanges else { return }
+        agents.append(contentsOf: plan.additions)
+        for updated in plan.updates {
+            if let index = agents.firstIndex(where: { $0.id == updated.id }) {
+                agents[index] = updated
+            }
+        }
+        persist()
+    }
+
     private func persist() {
         try? store?.save(agents)
     }

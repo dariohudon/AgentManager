@@ -360,4 +360,115 @@ final class AgentManagerTests: XCTestCase {
         XCTAssertEqual(loaded, .initial)
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
     }
+
+    // MARK: - Agent Pack import/export (M05-S01)
+
+    func testExportLibraryRoundTripsToUnchangedImport() throws {
+        let pack = AgentPackService.makeLibraryPack(agents: SeedAgents.all, now: Self.fixedDate)
+        XCTAssertEqual(pack.packType, "library")
+        XCTAssertEqual(pack.schemaVersion, AgentPack.currentSchemaVersion)
+
+        let json = try AgentPackService.encode(pack)
+        let decoded = try AgentPackService.decode(json)
+        try AgentPackService.validate(decoded)
+
+        // Re-importing an export of the same agents should be all-unchanged.
+        let plan = AgentPackService.plan(pack: decoded, existing: SeedAgents.all, now: Self.fixedDate)
+        XCTAssertEqual(plan.addCount, 0)
+        XCTAssertEqual(plan.updateCount, 0)
+        XCTAssertEqual(plan.errorCount, 0)
+        XCTAssertEqual(plan.unchangedCount, SeedAgents.all.count)
+        XCTAssertFalse(plan.hasApplicableChanges)
+    }
+
+    func testImportPlanAddsNewAgent() {
+        let pack = AgentPack(
+            schemaVersion: 1, packType: "agent", name: "t", description: nil,
+            createdBy: nil, updatedAt: nil, importMode: "merge", categories: nil,
+            agents: [PackAgent(slug: "scout", name: "scout", title: "Scout",
+                               category: "Research", preferredAI: "Perplexity",
+                               purpose: "Finds things", instructions: "You are the Scout.")]
+        )
+        let plan = AgentPackService.plan(pack: pack, existing: SeedAgents.all, now: Self.fixedDate)
+        XCTAssertEqual(plan.addCount, 1)
+        XCTAssertEqual(plan.updateCount, 0)
+        XCTAssertEqual(plan.additions.first?.name, "scout")
+        XCTAssertEqual(plan.additions.first?.category, "Research")
+    }
+
+    func testImportPlanUpdatesExistingBySlugNotDuplicate() {
+        // Same slug as a seed agent ("architect") but a changed prompt → update.
+        let pack = AgentPack(
+            schemaVersion: 1, packType: "agent", name: "t", description: nil,
+            createdBy: nil, updatedAt: nil, importMode: "merge", categories: nil,
+            agents: [PackAgent(slug: "architect", name: "architect", title: "Architect",
+                               category: "Strategy", preferredAI: "ChatGPT",
+                               purpose: "Plans.", instructions: "Updated instructions.")]
+        )
+        let plan = AgentPackService.plan(pack: pack, existing: SeedAgents.all, now: Self.fixedDate)
+        XCTAssertEqual(plan.addCount, 0)
+        XCTAssertEqual(plan.updateCount, 1)
+        // The update preserves the existing agent's id.
+        XCTAssertEqual(plan.updates.first?.id, SeedAgents.architect.id)
+        XCTAssertEqual(plan.updates.first?.prompt, "Updated instructions.")
+    }
+
+    func testImportPlanMissingInstructionsIsError() {
+        let pack = AgentPack(
+            schemaVersion: 1, packType: "agent", name: "t", description: nil,
+            createdBy: nil, updatedAt: nil, importMode: "merge", categories: nil,
+            agents: [PackAgent(slug: "broken", name: "broken", title: nil,
+                               category: nil, preferredAI: nil, purpose: nil, instructions: "  ")]
+        )
+        let plan = AgentPackService.plan(pack: pack, existing: SeedAgents.all, now: Self.fixedDate)
+        XCTAssertEqual(plan.errorCount, 1)
+        XCTAssertEqual(plan.addCount, 0)
+        XCTAssertEqual(plan.updateCount, 0)
+    }
+
+    func testImportRejectsMalformedJSON() {
+        XCTAssertThrowsError(try AgentPackService.decode("{ not valid json")) { error in
+            XCTAssertEqual(error as? AgentPackError, .malformedJSON)
+        }
+    }
+
+    func testImportRejectsUnsupportedSchemaVersion() throws {
+        let pack = AgentPack(
+            schemaVersion: 999, packType: "library", name: nil, description: nil,
+            createdBy: nil, updatedAt: nil, importMode: nil, categories: nil,
+            agents: [PackAgent(slug: "a", name: "a", title: nil, category: nil,
+                               preferredAI: nil, purpose: nil, instructions: "x")]
+        )
+        XCTAssertThrowsError(try AgentPackService.validate(pack)) { error in
+            XCTAssertEqual(error as? AgentPackError, .unsupportedSchemaVersion(found: 999, supported: AgentPack.currentSchemaVersion))
+        }
+    }
+
+    func testApplyImportAddsAndUpdatesAndPersists() throws {
+        let url = makeTempStoreURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let vault = AgentVault(store: AgentStore(storeURL: url), optionsStore: nil)
+        let before = vault.agents.count
+
+        let pack = AgentPack(
+            schemaVersion: 1, packType: "library", name: nil, description: nil,
+            createdBy: nil, updatedAt: nil, importMode: "merge", categories: nil,
+            agents: [
+                PackAgent(slug: "scout", name: "scout", title: "Scout", category: "Research",
+                          preferredAI: "Perplexity", purpose: "Finds", instructions: "Be the Scout."),
+                PackAgent(slug: "architect", name: "architect", title: "Architect", category: "Strategy",
+                          preferredAI: "ChatGPT", purpose: "Plans", instructions: "New architect instructions."),
+            ]
+        )
+        let plan = AgentPackService.plan(pack: pack, existing: vault.agents, now: Self.fixedDate)
+        XCTAssertEqual(plan.addCount, 1)
+        XCTAssertEqual(plan.updateCount, 1)
+
+        vault.applyImport(plan)
+        XCTAssertEqual(vault.agents.count, before + 1)
+
+        let reloaded = try AgentStore(storeURL: url).load()
+        XCTAssertTrue(reloaded.contains { $0.name == "scout" })
+        XCTAssertEqual(reloaded.first { $0.name == "architect" }?.prompt, "New architect instructions.")
+    }
 }
