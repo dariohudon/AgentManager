@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/agent-manager-app-icon.png" alt="Agent Manager logo" width="96" height="96">
+</p>
+
 # Agent Manager
 
 <p align="center">
