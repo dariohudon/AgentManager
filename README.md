@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/agent-manager-app-icon.png" alt="Agent Manager logo" width="96" height="96">
+  <img src="docs/assets/agent-manager-app-icon.png" alt="Agent Manager logo" width="196" height="196">
 </p>
 
 # Agent Manager
