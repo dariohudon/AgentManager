@@ -2,16 +2,17 @@
 
 ## Status
 
-M01 and M02 are locked. M03 (Native macOS Redesign) has begun with its direction lock
-(M03-S01) — docs only; no product UI redesigned yet.
+M01 and M02 are locked. **M03 (Native macOS Redesign) is complete and under final lock
+review (M03-S07).** All of M03-S01 through M03-S06.5 are implemented and merged to main;
+the app has been redesigned, not merely direction-locked.
 
 ## Current Milestone
 
-M03 - Native macOS Redesign (direction-locking)
+M03 - Native macOS Redesign (complete / lock review)
 
 ## Current Branch
 
-m03-s01-redesign-direction-lock
+m03-s07-codex-review-m03-lock
 
 ## Local Path
 
@@ -19,23 +20,62 @@ m03-s01-redesign-direction-lock
 
 ## Shipped
 
-`main` contains M01 (S01–S09) plus M02-S01 through M02-S04:
+`main` contains M01 (S01–S09), M02 (S01–S04), and M03 (S01–S06.5):
 
 - M01 — Menu Bar Agent Vault (locked): menu bar app, Agent model + seed data,
   categorized list/detail, Copy Prompt, local JSON persistence, add/edit/delete,
   global shortcut + standalone hotkey window.
-- M02-S01 — Category UX Polish: category headers larger/bold; collapsed by default;
-  expand/collapse via `DisclosureGroup`; no hidden auto-selected agent on open.
-- M02-S02 — Preferred AI Field and Managed Dropdowns: `Agent.preferredAI`; category and
-  Preferred AI dropdowns; user-addable options; new `options.json`.
-- M02-S03 — Settings Gear: inline Settings mode (not sheet/popover) behind a cog;
-  app-level options + storage/shortcut info; no per-agent content.
-- M02-S04 — Duplicate Agent: duplicate selected agent (new id, fresh timestamps,
-  ` Copy` name, preserved fields), expands the copy's category and selects it.
+- M02 — Agent Library Polish + Metadata (locked): category UX (collapsed by default),
+  Preferred AI metadata + managed category/Preferred AI dropdowns, inline Settings,
+  Duplicate Agent, `options.json`.
+- M03 — Native macOS Redesign:
+  - M03-S01 — Redesign Direction Lock
+  - M03-S02 — NavigationSplitView Foundation
+  - M03-S03 — Native Materials and Visual Hierarchy
+  - M03-S04 — Browse / Inspect / Edit Architecture
+  - M03-S05 — Agent Detail Redesign
+  - M03-S06 — Primary Run Action Direction
+  - M03-S06.5 — Visual QA + Store Polish Patch
+  - M03-S07 — Final Review and Lock (in progress)
 
 ## App Model
 
 Agent Library → Category → Agent → Instructions (capability-first, not prompt-first).
+
+## Primary Flow
+
+Browse agents → Select agent → Run/copy agent.
+
+## M03 Implementation Realities
+
+- **Persistent NavigationSplitView**: a sidebar navigator + detail column is the
+  permanent foundation; editor / delete-confirm / Settings render in the detail column,
+  not as modals.
+- **Calm native visual hierarchy**: calmer rows and detail; clear primary/secondary/
+  de-emphasized actions instead of equal-weight buttons.
+- **Browse / Inspect / Edit separation**: selecting an agent shows read-only inspect by
+  default; Edit is entered intentionally; New Agent is a quiet "+" control.
+- **Agent detail redesigned**: clear name header, compact `Category • Preferred AI`
+  metadata line, a **Purpose** section, and **Instructions** as the prominent scrollable
+  star.
+- **Run / Copy language bridge**: the primary action reads "Run / Copy" with honest
+  helper text/tooltip. **Behavior is copy-only** — it copies `agent.prompt` to the
+  clipboard via `PromptPasteboard.copy(agent)`. No real execution exists.
+- **Dash-placeholder display sanitizer**: `String.sanitizedForDisplay` suppresses empty/
+  whitespace/dash-only placeholders in rows, Purpose, and Instructions (display-level
+  only; stored JSON is not mutated).
+- **Neutral background fix**: `ContentView` uses an opaque native window background to
+  remove accent/translucency bleed.
+- **Editor no longer manages options**: the agent editor keeps Category and Preferred AI
+  pickers but no longer adds options; option management lives in Settings.
+- **Settings grouped and app-level**: a native grouped Form with Categories, Preferred
+  AI, and a quieter App Info section. No per-agent content.
+
+## Shared Surface
+
+`MenuBarExtra` and the standalone hotkey `NSWindow` both render the same shared
+`ContentView` → `AgentBrowserView` path over one `AgentVault`. There is no menu-bar-only
+or hotkey-only UI path.
 
 ## Agent Fields
 
@@ -48,41 +88,23 @@ Agent Library → Category → Agent → Instructions (capability-first, not pro
 - Agents: `~/Library/Application Support/AgentManager/agents.json` (plain `[Agent]` array)
 - Options: `~/Library/Application Support/AgentManager/options.json` (`LibraryOptions`)
 
-## Options
-
-- Categories are managed app-level options (derived from agents ∪ custom additions).
-- Preferred AI options are managed app-level options.
-- Default Preferred AI options: ChatGPT, Claude, Perplexity, Zapier, Descript.
-- Options are added from either the agent editor or Settings (same persistence).
-
-## Settings
-
-- Inline mode (not a sheet/popover), reached via an unobtrusive cog.
-- App-level reusable options only (categories, Preferred AI) plus storage/shortcut info.
-- No per-agent content in Settings.
-
-## Duplicate
-
-- New `id` and fresh `createdAt`/`updatedAt`.
-- Preserves category, Preferred AI, title, description, prompt.
-- Marks the name with ` Copy`.
-
 ## Stable Decisions
 
 - Native macOS menu bar app, Swift + SwiftUI; capability-first Agent Library.
-- `AgentBrowserView` is reusable by both the `MenuBarExtra` surface and the standalone
-  hotkey `NSWindow`.
+- `AgentBrowserView` (via `ContentView`) is reusable by both the `MenuBarExtra` surface
+  and the standalone hotkey `NSWindow`.
+- Run / Copy is copy-backed only; it copies `agent.prompt` — no real execution.
+- Settings remains app-level only (no per-agent content).
 - Preferred AI is user-facing wording for a preferred tool/engine field.
 - Local-first JSON storage only; BATON-managed workflow.
-- No Chrome extension, backend, cloud sync, browser injection, server deployment, in-app
-  BATON integration, workflows/handoffs/review packets, or capability engines.
+- No backend, cloud sync, browser injection, in-app BATON integration, real execution,
+  workflows/handoffs/review packets, or external dependencies were added.
 
 ## Known Limitations
 
 - No live GUI automation in reviews — interactive flows are spot-checked by a human;
-  data/persistence paths are covered by unit tests.
-- Managed options are add-only (no delete/rename yet) to avoid data-integrity issues
-  with categories already assigned to agents.
+  data/persistence/display logic is covered by unit tests.
+- Managed options are add-only (no delete/rename yet).
 - Duplicating a duplicate yields names like `Name Copy Copy` (no uniqueness logic).
 - Local JSON only — no cloud sync or multi-device support.
 - Control + Option + Space may conflict with the macOS input-source switching shortcut;
@@ -90,23 +112,13 @@ Agent Library → Category → Agent → Instructions (capability-first, not pro
 - The shortcut opens a real `NSWindow` because `MenuBarExtra` cannot be opened
   programmatically.
 
-## M03 Direction (direction-locked, not yet implemented)
+## Future Direction (not implemented)
 
-- Native macOS Redesign: move from a CRUD-over-JSON feel to a native capability library.
-- Primary user flow: Browse agents → Select agent → Run/copy agent.
-- Separate Browse → Inspect → Edit; inspect/read is default, edit is intentional.
-- Primary action is now labeled "Run / Copy" (M03-S06), still copy-backed (copies only
-  agent.prompt) with helper text; prepares for Open-in-AI guided by Preferred AI.
-- Destructive actions de-emphasized; Settings stays app-level only; the shared Agent
-  Library surface stays reusable across the menu bar and hotkey window.
-- Full direction + diagnosis + layout + sprint plan:
-  `docs/architecture/m03-native-macos-redesign.md`.
-- Planned sprints: S01 Direction Lock (this), S02 NavigationSplitView Foundation,
-  S03 Native Materials and Visual Hierarchy, S04 Browse/Inspect/Edit Architecture,
-  S05 Agent Detail Redesign, S06 Primary Run Action Direction, S07 Codex Review and M03
-  Lock.
+The primary action's "Run / Copy" wording prepares for an eventual Run Agent / Open-in-
+Preferred-AI model. No browser/API execution, integrations, or execution engine exists
+today. Future Agent pages may add Inputs Needed, Output Format, Validation Checklist,
+Examples, and Change Log / Versions.
 
 ## Immediate Next Step
 
-Codex review of the M03 direction lock (M03-S01), then M03-S02 (NavigationSplitView
-Foundation).
+Complete the M03-S07 final lock review and lock M03.
