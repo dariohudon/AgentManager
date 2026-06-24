@@ -283,11 +283,22 @@ struct AgentBrowserView: View {
         .padding()
     }
 
+    /// Calm native default state shown when agents exist but none is selected:
+    /// the centered Agent Manager logo with a quiet prompt. Not a splash screen —
+    /// it is the resting content of the shared detail column.
     private var selectPrompt: some View {
-        Text("Select an agent")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: 14) {
+            Image("AgentManagerLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 96, height: 96)
+                .accessibilityLabel("Agent Manager")
+
+            Text("Select an agent")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

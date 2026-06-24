@@ -14,7 +14,7 @@ struct AgentManagerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("Agent Manager", systemImage: "square.stack.3d.up") {
+        MenuBarExtra("Agent Manager", image: "MenuBarIcon") {
             ContentView(vault: appDelegate.vault)
         }
         .menuBarExtraStyle(.window)

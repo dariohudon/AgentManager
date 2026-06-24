@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "agent-manager-logo-color.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
