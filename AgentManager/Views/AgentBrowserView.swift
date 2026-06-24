@@ -27,6 +27,9 @@ struct AgentBrowserView: View {
     /// starts collapsed each time the library opens. Not persisted across launches.
     @State private var expandedCategories: Set<String> = []
 
+    /// Lightweight local filter (agent name + category). Empty = show everything.
+    @State private var searchText = ""
+
     /// What the detail (right) column is currently showing. `.inspect` is the
     /// default/read state; `.editor` is the intentional edit state.
     private enum DetailMode {
@@ -84,6 +87,10 @@ struct AgentBrowserView: View {
 
     private var sidebar: some View {
         VStack(spacing: 0) {
+            searchField
+
+            Divider()
+
             List(selection: $selectedAgentID) {
                 ForEach(groupedByCategory, id: \.category) { group in
                     DisclosureGroup(isExpanded: expansionBinding(for: group.category)) {
@@ -92,8 +99,9 @@ struct AgentBrowserView: View {
                                 .tag(agent.id)
                         }
                     } label: {
+                        // Bold, sized to match the Settings category list rows (.body).
                         Text(group.category)
-                            .font(.title3.weight(.bold))
+                            .font(.body.weight(.bold))
                     }
                 }
             }
@@ -128,11 +136,35 @@ struct AgentBrowserView: View {
         .frame(minWidth: 220)
     }
 
-    /// Two-way binding for a category's expanded state, backed by
-    /// `expandedCategories`. Categories are collapsed unless present in the set.
+    /// Always-visible local search above the category list. Filters by agent
+    /// name and category; while searching, matching categories auto-expand.
+    private var searchField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search agents", text: $searchText)
+                .textFieldStyle(.plain)
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .help("Clear search")
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+    }
+
+    /// Two-way binding for a category's expanded state. Categories are collapsed
+    /// unless present in `expandedCategories` — but while searching, every
+    /// matching category is expanded so results are visible.
     private func expansionBinding(for category: String) -> Binding<Bool> {
         Binding(
-            get: { expandedCategories.contains(category) },
+            get: { isSearching || expandedCategories.contains(category) },
             set: { isExpanded in
                 if isExpanded {
                     expandedCategories.insert(category)
@@ -174,10 +206,20 @@ struct AgentBrowserView: View {
         vault.agents.first { $0.id == selectedAgentID }
     }
 
-    /// Agents grouped into categories (categories sorted alphabetically, agents
-    /// sorted by name within each category).
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Agents (filtered by the search field on name + category) grouped into
+    /// categories — categories sorted alphabetically, agents by name within
+    /// each. Empty categories are dropped while searching.
     private var groupedByCategory: [(category: String, agents: [Agent])] {
-        Dictionary(grouping: vault.agents, by: \.category)
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let agents = query.isEmpty ? vault.agents : vault.agents.filter { agent in
+            agent.name.lowercased().contains(query)
+                || agent.category.lowercased().contains(query)
+        }
+        return Dictionary(grouping: agents, by: \.category)
             .map { (category: $0.key, agents: $0.value.sorted { $0.name < $1.name }) }
             .sorted { $0.category < $1.category }
     }

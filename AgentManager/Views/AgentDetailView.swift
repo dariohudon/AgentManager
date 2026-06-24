@@ -53,51 +53,43 @@ struct AgentDetailView: View {
     // MARK: - Toolbar
 
     private var actionBar: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Button(action: copyPrompt) {
-                    Label(didCopy ? "Copied" : "Run / Copy",
-                          systemImage: didCopy ? "checkmark" : "doc.on.doc")
-                }
-                .buttonStyle(.borderedProminent)
-                .help("Copies the instructions to the clipboard. Preferred AI will guide future run/open actions.")
-
-                Spacer()
-
-                Button(action: onEdit) {
-                    Image(systemName: "pencil")
-                }
-                .help("Edit agent")
-
-                Button(action: onDuplicate) {
-                    Image(systemName: "plus.square.on.square")
-                }
-                .help("Duplicate agent")
-
-                Menu {
-                    Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-                .help("More actions")
+        HStack(spacing: 8) {
+            Button(action: copyPrompt) {
+                Label(didCopy ? "Copied" : "Run / Copy",
+                      systemImage: didCopy ? "checkmark" : "doc.on.doc")
             }
+            .buttonStyle(.borderedProminent)
+            .help("Copies the instructions to the clipboard. Preferred AI will guide future run/open actions.")
 
-            // Honest about today's behavior while signalling the future direction.
-            Text("Copies the instructions for now. Preferred AI (\(agent.preferredAI)) will guide future run/open actions.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Spacer()
+
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+            }
+            .help("Edit agent")
+
+            Button(action: onDuplicate) {
+                Image(systemName: "plus.square.on.square")
+            }
+            .help("Duplicate agent")
+
+            Menu {
+                Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("More actions")
         }
     }
 
     // MARK: - Purpose
 
     private func purposeSection(_ purpose: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text("Purpose")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(.headline)
 
             Text(purpose)
                 .font(.subheadline)
